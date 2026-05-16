@@ -15,6 +15,7 @@ import ProfilePage from './pages/ProfilePage'
 import AdminPage from './pages/AdminPage'
 import AboutPage from './pages/AboutPage'
 import NotFoundPage from './pages/NotFoundPage'
+import AdminVenueFormPage from './pages/AdminVenueFormPage'
 
 export default function App() {
   return (
@@ -46,6 +47,16 @@ export default function App() {
             <Route path="admin" element={
               <ProtectedRoute adminOnly>
                 <AdminPage />
+              </ProtectedRoute>
+            } />
+            <Route path="admin/venues/new" element={
+              <ProtectedRoute adminOnly>
+                <AdminVenueFormPage />
+              </ProtectedRoute>
+            } />
+            <Route path="admin/venues/:id/edit" element={
+              <ProtectedRoute adminOnly>
+                <AdminVenueFormPage />
               </ProtectedRoute>
             } />
 

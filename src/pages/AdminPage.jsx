@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import { mockVenues, mockBookings, mockStats } from '../data/mockData'
 import toast from 'react-hot-toast'
+import { useNavigate } from 'react-router-dom'
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -23,6 +24,7 @@ const mockUsers = [
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('overview')
   const [venueSearch, setVenueSearch] = useState('')
+  const navigate = useNavigate()
 
   const filteredVenues = mockVenues.filter(v =>
     v.name.toLowerCase().includes(venueSearch.toLowerCase()) ||
@@ -151,7 +153,7 @@ export default function AdminPage() {
                   <p className="text-slate-500 text-sm mt-0.5">{filteredVenues.length} venues total</p>
                 </div>
                 <button
-                  onClick={() => toast.success('Add venue form — connect to Supabase to enable')}
+                  onClick={() => navigate('/admin/venues/new')}
                   className="btn-primary flex items-center gap-2 text-sm self-start"
                 >
                   <Plus size={15} /> Add Venue
@@ -222,7 +224,7 @@ export default function AdminPage() {
                                 <Eye size={14} />
                               </button>
                               <button
-                                onClick={() => toast.success('Edit venue — connect Supabase to enable')}
+                                onClick={() => navigate(`/admin/venues/edit/${venue.id}`)}
                                 className="p-1.5 rounded-lg hover:bg-blue-500/10 text-slate-500 hover:text-blue-400 transition-all"
                               >
                                 <Edit size={14} />

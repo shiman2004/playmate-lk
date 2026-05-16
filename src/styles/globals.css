@@ -35,14 +35,42 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  body {
-    @apply bg-dark-950 text-slate-100 font-body;
-    min-height: 100vh;
-  }
+body {
+  @apply bg-dark-950 text-slate-100 font-body;
+  min-height: 100vh;
+}
 
-  .light body {
-    @apply bg-gray-50 text-dark-900;
-  }
+html.light body {
+  @apply bg-gray-50 text-slate-900;
+}
+
+html.light .card,
+html.light .card-hover {
+  @apply bg-white border-slate-200 text-slate-900;
+}
+
+html.light nav {
+  background-color: rgba(255,255,255,0.9) !important;
+  border-bottom-color: rgba(0,0,0,0.08) !important;
+}
+
+html.light .input {
+  @apply bg-white border-slate-300 text-slate-900 placeholder-slate-400;
+}
+
+html.light .bg-dark-950 { background-color: #f8fafc; }
+html.light .bg-dark-900 { background-color: #f1f5f9; }
+html.light .bg-dark-800 { background-color: #e2e8f0; }
+html.light .bg-dark-700 { background-color: #cbd5e1; }
+html.light .text-white  { color: #0f172a; }
+html.light .text-slate-400 { color: #475569; }
+html.light .text-slate-500 { color: #64748b; }
+html.light .border-white\/5  { border-color: rgba(0,0,0,0.08); }
+html.light .border-white\/10 { border-color: rgba(0,0,0,0.10); }
+html.light .glass {
+  background: rgba(255,255,255,0.7);
+  border-color: rgba(0,0,0,0.10);
+}
 }
 
 @layer components {
