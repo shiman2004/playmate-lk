@@ -9,7 +9,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const { user, profile, isAdmin, signOut } = useAuth()
+  const { user, profile, isAdmin, isSuperAdmin, isVenueOwner, signOut } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
@@ -124,13 +124,22 @@ export default function Navbar() {
                       >
                         <User size={15} /> Profile
                       </Link>
-                      {isAdmin && (
+                      {isSuperAdmin && (
                         <Link
                           to="/admin"
                           onClick={() => setDropdownOpen(false)}
                           className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-primary-400 hover:text-primary-300 hover:bg-primary-500/10 text-sm transition-all"
                         >
-                          <Shield size={15} /> Admin Panel
+                          <Shield size={15} /> Super Admin
+                        </Link>
+                      )}
+                      {isVenueOwner && (
+                        <Link
+                          to="/venue-dashboard"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 text-sm transition-all"
+                        >
+                          <Building2 size={15} /> My Venue
                         </Link>
                       )}
                       <button
@@ -221,6 +230,14 @@ export default function Navbar() {
       {dropdownOpen && (
         <div className="fixed inset-0 z-[-1]" onClick={() => setDropdownOpen(false)} />
       )}
+      <Link
+        to="/dashboard"
+        onClick={() => setDropdownOpen(false)}
+        className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 text-sm transition-all"
+      >
+        <LayoutDashboard size={15} />
+        {isVenueOwner ? 'Venue Dashboard' : 'Dashboard'}
+      </Link>
     </nav>
   )
 }

@@ -55,14 +55,24 @@ export default function BookingCard({ booking, onCancel }) {
 
         <div className="flex items-center justify-between">
           <span className="text-slate-600 text-xs font-mono">#{booking.id}</span>
-          {isUpcoming && onCancel && (
-            <button
-              onClick={() => onCancel(booking.id)}
-              className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 px-2.5 py-1 rounded-lg transition-all"
-            >
-              <X size={12} /> Cancel
-            </button>
-          )}
+          {isUpcoming && onCancel && (() => {
+            const bookingDateTime = new Date(`${booking.date}T${booking.start_time}`)
+            const hoursUntil = (bookingDateTime - new Date()) / (1000 * 60 * 60)
+            const canCancel = hoursUntil > 24
+
+            return canCancel ? (
+              <button
+                onClick={() => onCancel(booking.id)}
+                className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 px-2.5 py-1 rounded-lg transition-all"
+              >
+                <X size={12} /> Cancel
+              </button>
+            ) : (
+              <div className="text-xs text-slate-600 px-2.5 py-1 rounded-lg border border-white/5 bg-dark-800">
+                Cannot cancel within 24hrs
+              </div>
+            )
+          })()}
         </div>
       </div>
     </div>

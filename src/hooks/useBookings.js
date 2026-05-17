@@ -104,25 +104,37 @@ const createBooking = async (bookingData) => {
 }
 
   const cancelBooking = async (bookingId) => {
-    if (!isSupabaseConfigured) {
-      await new Promise(r => setTimeout(r, 500))
-      setBookings(prev =>
-        prev.map(b => b.id === bookingId ? { ...b, status: 'cancelled' } : b)
-      )
-      return
-    }
-
-    const { error } = await supabase
-      .from('bookings')
-      .update({ status: 'cancelled' })
-      .eq('id', bookingId)
-      .eq('user_id', user.id)
-
-    if (error) throw error
+  if (!isSupabaseConfigured) {
+    await new Promise(r => setTimeout(r, 500))
     setBookings(prev =>
       prev.map(b => b.id === bookingId ? { ...b, status: 'cancelled' } : b)
     )
+    return
   }
+
+  // Get booking details first
+  const booking = bookings.find(b => b.id === bookingId)
+
+  const { error } = await supabase
+    .from('bookings')
+    .update({ status: 'cancelled' })
+    .eq('id', bookingId)
+    .eq('user_id', user.id)
+
+  if (error) throw error
+
+  // Free up the slot
+  if (booking?.slot_id) {
+    await supabase
+      .from('time_slots')
+      .update({ is_available: true })
+      .eq('id', booking.slot_id)
+  }
+
+  setBookings(prev =>
+    prev.map(b => b.id === bookingId ? { ...b, status: 'cancelled' } : b)
+  )
+}
 
   return { bookings, loading, error, createBooking, cancelBooking, refetch: fetchBookings }
 }

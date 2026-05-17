@@ -3,6 +3,7 @@ import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import Layout from './components/layout/Layout'
 import ProtectedRoute from './components/layout/ProtectedRoute'
+import VenueOwnerDashboard from './pages/VenueOwnerDashboard'
 
 // Pages
 import HomePage from './pages/HomePage'
@@ -45,18 +46,23 @@ export default function App() {
               </ProtectedRoute>
             } />
             <Route path="admin" element={
-              <ProtectedRoute adminOnly>
+              <ProtectedRoute superAdminOnly>
                 <AdminPage />
               </ProtectedRoute>
             } />
             <Route path="admin/venues/new" element={
-              <ProtectedRoute adminOnly>
+              <ProtectedRoute superAdminOnly>
                 <AdminVenueFormPage />
               </ProtectedRoute>
             } />
             <Route path="admin/venues/edit/:id" element={
-              <ProtectedRoute adminOnly>
+              <ProtectedRoute superAdminOnly>
                 <AdminVenueFormPage />
+              </ProtectedRoute>
+            } />
+            <Route path="venue-dashboard" element={
+              <ProtectedRoute venueOwnerOnly>
+                <VenueOwnerDashboard />
               </ProtectedRoute>
             } />
 

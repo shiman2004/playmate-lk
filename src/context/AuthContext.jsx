@@ -8,6 +8,9 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
+  const [isVenueOwner, setIsVenueOwner] = useState(false)
+  const [ownedVenueId, setOwnedVenueId] = useState(null)
 
   useEffect(() => {
     // Safety net: never block rendering for more than 3 seconds
@@ -71,7 +74,10 @@ export function AuthProvider({ children }) {
 
       if (error && error.code !== 'PGRST116') throw error
       setProfile(data)
-      setIsAdmin(data?.role === 'admin')
+      setIsAdmin(data?.role === 'admin' || data?.role === 'super_admin')
+      setIsSuperAdmin(data?.role === 'super_admin')
+      setIsVenueOwner(data?.role === 'venue_owner')
+setOwnedVenueId(data?.owned_venue_id || null)
     } catch (err) {
       console.error('Error fetching profile:', err)
     } finally {
@@ -119,6 +125,9 @@ export function AuthProvider({ children }) {
     profile,
     loading,
     isAdmin,
+    isSuperAdmin,
+    isVenueOwner,
+    ownedVenueId,
     isAuthenticated: !!user,
     signUp,
     signIn,
