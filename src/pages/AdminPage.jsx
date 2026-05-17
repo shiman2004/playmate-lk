@@ -63,8 +63,6 @@ export default function AdminPage() {
       toast.error('Failed to delete venue')
     }
   }
-  const navigate = useNavigate()
-
   const filteredVenues = venues.filter(v =>
   v.name.toLowerCase().includes(venueSearch.toLowerCase()) ||
   v.city.toLowerCase().includes(venueSearch.toLowerCase())
