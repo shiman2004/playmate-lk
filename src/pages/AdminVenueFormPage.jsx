@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Save, Loader, AlertCircle, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Save, Loader, Upload, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
@@ -41,6 +41,7 @@ export default function AdminVenueFormPage() {
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(isEdit)
   const [errors, setErrors] = useState({})
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     if (isEdit) fetchVenue()
@@ -108,6 +109,50 @@ export default function AdminVenueFormPage() {
       ...prev,
       images: prev.images.filter((_, i) => i !== index)
     }))
+  }
+
+  // ── Image Upload to Supabase Storage ──
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be under 5MB')
+      return
+    }
+
+    setUploading(true)
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('venue-images')
+        .upload(fileName, file)
+
+      if (uploadError) throw uploadError
+
+      const { data } = supabase.storage
+        .from('venue-images')
+        .getPublicUrl(fileName)
+
+      // Add URL to images array (replace empty slots first)
+      setForm(prev => {
+        const existingImages = prev.images.filter(img => img.trim() !== '')
+        return {
+          ...prev,
+          images: [...existingImages, data.publicUrl]
+        }
+      })
+
+      toast.success('Image uploaded!')
+    } catch (err) {
+      toast.error('Upload failed: ' + err.message)
+    } finally {
+      setUploading(false)
+      // Reset file input
+      e.target.value = ''
+    }
   }
 
   const validate = () => {
@@ -303,9 +348,7 @@ export default function AdminVenueFormPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1.5">
-                  Day Rate (Rs/hour) *
-                </label>
+                <label className="block text-sm font-medium text-slate-400 mb-1.5">Day Rate (Rs/hour) *</label>
                 <input
                   name="price_per_hour"
                   type="number"
@@ -317,9 +360,7 @@ export default function AdminVenueFormPage() {
                 {errors.price_per_hour && <p className="text-red-400 text-xs mt-1">{errors.price_per_hour}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1.5">
-                  Night Surcharge (Rs)
-                </label>
+                <label className="block text-sm font-medium text-slate-400 mb-1.5">Night Surcharge (Rs)</label>
                 <input
                   name="night_surcharge"
                   type="number"
@@ -340,9 +381,7 @@ export default function AdminVenueFormPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1.5">
-                Night Rate Starts At
-              </label>
+              <label className="block text-sm font-medium text-slate-400 mb-1.5">Night Rate Starts At</label>
               <input
                 name="price_cutoff_time"
                 type="time"
@@ -350,12 +389,9 @@ export default function AdminVenueFormPage() {
                 onChange={handleChange}
                 className="input w-40"
               />
-              <p className="text-slate-600 text-xs mt-1">
-                Slots from this time onwards will use the night rate
-              </p>
+              <p className="text-slate-600 text-xs mt-1">Slots from this time onwards use the night rate</p>
             </div>
 
-            {/* Pricing preview */}
             {form.price_per_hour && (
               <div className="grid grid-cols-2 gap-3 p-4 rounded-xl bg-dark-800 border border-white/5">
                 <div className="flex items-center gap-2">
@@ -387,54 +423,40 @@ export default function AdminVenueFormPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-400 mb-1.5">Opening Time</label>
-                <input
-                  name="open_time"
-                  type="time"
-                  value={form.open_time}
-                  onChange={handleChange}
-                  className="input"
-                />
+                <input name="open_time" type="time" value={form.open_time} onChange={handleChange} className="input" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-400 mb-1.5">Closing Time</label>
-                <input
-                  name="close_time"
-                  type="time"
-                  value={form.close_time}
-                  onChange={handleChange}
-                  className="input"
-                />
+                <input name="close_time" type="time" value={form.close_time} onChange={handleChange} className="input" />
               </div>
             </div>
 
             <div className="flex gap-6">
               <label className="flex items-center gap-3 cursor-pointer group">
-                <div className={`w-11 h-6 rounded-full transition-all relative ${form.is_active ? 'bg-primary-500' : 'bg-dark-700'}`}
-                  onClick={() => setForm(prev => ({ ...prev, is_active: !prev.is_active }))}>
+                <div
+                  className={`w-11 h-6 rounded-full transition-all relative ${form.is_active ? 'bg-primary-500' : 'bg-dark-700'}`}
+                  onClick={() => setForm(prev => ({ ...prev, is_active: !prev.is_active }))}
+                >
                   <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${form.is_active ? 'left-5' : 'left-0.5'}`} />
                 </div>
-                <span className="text-slate-300 text-sm group-hover:text-white transition-colors">
-                  Active (visible to users)
-                </span>
+                <span className="text-slate-300 text-sm">Active (visible to users)</span>
               </label>
 
               <label className="flex items-center gap-3 cursor-pointer group">
-                <div className={`w-11 h-6 rounded-full transition-all relative ${form.is_featured ? 'bg-primary-500' : 'bg-dark-700'}`}
-                  onClick={() => setForm(prev => ({ ...prev, is_featured: !prev.is_featured }))}>
+                <div
+                  className={`w-11 h-6 rounded-full transition-all relative ${form.is_featured ? 'bg-primary-500' : 'bg-dark-700'}`}
+                  onClick={() => setForm(prev => ({ ...prev, is_featured: !prev.is_featured }))}
+                >
                   <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${form.is_featured ? 'left-5' : 'left-0.5'}`} />
                 </div>
-                <span className="text-slate-300 text-sm group-hover:text-white transition-colors">
-                  Featured on homepage
-                </span>
+                <span className="text-slate-300 text-sm">Featured on homepage</span>
               </label>
             </div>
           </div>
 
           {/* Sports */}
           <div className="card space-y-4">
-            <h2 className="text-white font-heading font-semibold text-xl pb-2 border-b border-white/5">
-              Sports *
-            </h2>
+            <h2 className="text-white font-heading font-semibold text-xl pb-2 border-b border-white/5">Sports *</h2>
             <div className="flex flex-wrap gap-2">
               {SPORTS_OPTIONS.map(sport => (
                 <button
@@ -456,9 +478,7 @@ export default function AdminVenueFormPage() {
 
           {/* Amenities */}
           <div className="card space-y-4">
-            <h2 className="text-white font-heading font-semibold text-xl pb-2 border-b border-white/5">
-              Amenities
-            </h2>
+            <h2 className="text-white font-heading font-semibold text-xl pb-2 border-b border-white/5">Amenities</h2>
             <div className="flex flex-wrap gap-2">
               {AMENITIES_OPTIONS.map(amenity => (
                 <button
@@ -479,39 +499,93 @@ export default function AdminVenueFormPage() {
 
           {/* Images */}
           <div className="card space-y-4">
-            <h2 className="text-white font-heading font-semibold text-xl pb-2 border-b border-white/5">
-              Images (URLs)
-            </h2>
-            <div className="space-y-2">
-              {form.images.map((img, index) => (
-                <div key={index} className="flex gap-2">
-                  <input
-                    type="url"
-                    value={img}
-                    onChange={e => handleImageChange(index, e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
-                    className="input text-sm"
-                  />
-                  {form.images.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeImageField(index)}
-                      className="px-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 text-xs transition-all"
-                    >
-                      ✕
-                    </button>
-                  )}
+            <h2 className="text-white font-heading font-semibold text-xl pb-2 border-b border-white/5">Images</h2>
+
+            {/* Upload button */}
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-1.5">Upload from device</label>
+              <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed cursor-pointer transition-all ${
+                uploading
+                  ? 'border-primary-500/50 bg-primary-500/5'
+                  : 'border-white/10 hover:border-primary-500/40 hover:bg-primary-500/5'
+              }`}>
+                <Upload size={18} className="text-primary-400 shrink-0" />
+                <div>
+                  <p className="text-slate-300 text-sm font-medium">
+                    {uploading ? 'Uploading...' : 'Click to upload image'}
+                  </p>
+                  <p className="text-slate-600 text-xs">JPG, PNG, WEBP — max 5MB</p>
                 </div>
-              ))}
-              {form.images.length < 5 && (
-                <button
-                  type="button"
-                  onClick={addImageField}
-                  className="text-sm text-primary-400 hover:text-primary-300 transition-colors"
-                >
-                  + Add another image URL
-                </button>
-              )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={uploading}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            {/* Image previews */}
+            {form.images.filter(img => img.trim()).length > 0 && (
+              <div>
+                <p className="text-slate-500 text-xs mb-2">Uploaded images:</p>
+                <div className="flex flex-wrap gap-3">
+                  {form.images.filter(img => img.trim()).map((img, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={img}
+                        alt=""
+                        className="w-24 h-24 rounded-xl object-cover border border-white/10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImageField(form.images.indexOf(img))}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs
+                          flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Manual URL input */}
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-1.5">Or paste image URL</label>
+              <div className="space-y-2">
+                {form.images.map((img, index) => (
+                  <div key={index} className="flex gap-2">
+                    <input
+                      type="url"
+                      value={img}
+                      onChange={e => handleImageChange(index, e.target.value)}
+                      placeholder="https://images.unsplash.com/..."
+                      className="input text-sm"
+                    />
+                    {form.images.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeImageField(index)}
+                        className="px-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 text-xs transition-all"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                ))}
+                {form.images.length < 5 && (
+                  <button
+                    type="button"
+                    onClick={addImageField}
+                    className="text-sm text-primary-400 hover:text-primary-300 transition-colors"
+                  >
+                    + Add another URL
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -522,7 +596,7 @@ export default function AdminVenueFormPage() {
             </Link>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || uploading}
               className="btn-primary flex-1 flex items-center justify-center gap-2 text-sm py-3.5"
             >
               {loading ? (
