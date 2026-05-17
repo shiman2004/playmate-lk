@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   LayoutDashboard, Building2, Calendar, Users, TrendingUp, Plus,
   Edit, Trash2, Eye, Search, ChevronDown, MoreHorizontal, Star
 } from 'lucide-react'
-import { mockVenues, mockBookings, mockStats } from '../data/mockData'
+import { mockBookings, mockStats } from '../data/mockData'
+import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 
@@ -24,12 +25,50 @@ const mockUsers = [
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('overview')
   const [venueSearch, setVenueSearch] = useState('')
+  const [venues, setVenues] = useState([])
+  const [loadingVenues, setLoadingVenues] = useState(true)
   const navigate = useNavigate()
 
-  const filteredVenues = mockVenues.filter(v =>
-    v.name.toLowerCase().includes(venueSearch.toLowerCase()) ||
-    v.city.toLowerCase().includes(venueSearch.toLowerCase())
-  )
+  useEffect(() => {
+    fetchVenues()
+  }, [])
+
+  const fetchVenues = async () => {
+    setLoadingVenues(true)
+    try {
+      const { data, error } = await supabase
+        .from('venues')
+        .select('*')
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      setVenues(data || [])
+    } catch (err) {
+      toast.error('Failed to load venues')
+    } finally {
+      setLoadingVenues(false)
+    }
+  }
+
+  const handleDeleteVenue = async (id) => {
+    if (!confirm('Are you sure you want to delete this venue?')) return
+    try {
+      const { error } = await supabase
+        .from('venues')
+        .delete()
+        .eq('id', id)
+      if (error) throw error
+      toast.success('Venue deleted')
+      fetchVenues()
+    } catch (err) {
+      toast.error('Failed to delete venue')
+    }
+  }
+  const navigate = useNavigate()
+
+  const filteredVenues = venues.filter(v =>
+  v.name.toLowerCase().includes(venueSearch.toLowerCase()) ||
+  v.city.toLowerCase().includes(venueSearch.toLowerCase())
+)
 
   const STATUS_COLORS = {
     confirmed: 'badge-green',
@@ -92,7 +131,7 @@ export default function AdminPage() {
               {/* Stats grid */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
-                  { label: 'Total Venues', value: mockStats.total_venues, icon: Building2, change: '+3 this month', color: 'text-primary-400', bg: 'bg-primary-500/10' },
+                  { label: 'Total Venues', value: venues.length, icon: Building2, change: 'Live from database', color: 'text-primary-400', bg: 'bg-primary-500/10' },
                   { label: 'Total Bookings', value: mockStats.total_bookings.toLocaleString(), icon: Calendar, change: '+127 this week', color: 'text-blue-400', bg: 'bg-blue-500/10' },
                   { label: 'Active Users', value: mockStats.active_users.toLocaleString(), icon: Users, change: '+340 this month', color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
                   { label: 'Revenue (Est.)', value: 'Rs 2.4M', icon: TrendingUp, change: '+18% vs last month', color: 'text-green-400', bg: 'bg-green-500/10' },
@@ -173,7 +212,13 @@ export default function AdminPage() {
               </div>
 
               {/* Venues table */}
-              <div className="card p-0 overflow-hidden">
+                    <div className="card p-0 overflow-hidden">
+                      {loadingVenues && (
+                        <div className="p-8 text-center text-slate-500 text-sm">Loading venues...</div>
+                      )}
+                      {!loadingVenues && filteredVenues.length === 0 && (
+                        <div className="p-8 text-center text-slate-500 text-sm">No venues found</div>
+                      )}
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-dark-800/50 border-b border-white/5">
@@ -230,7 +275,7 @@ export default function AdminPage() {
                                 <Edit size={14} />
                               </button>
                               <button
-                                onClick={() => toast.error('Delete disabled in demo mode')}
+                                onClick={() => handleDeleteVenue(venue.id)}
                                 className="p-1.5 rounded-lg hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-all"
                               >
                                 <Trash2 size={14} />
