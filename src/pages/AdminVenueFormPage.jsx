@@ -7,6 +7,47 @@ import toast from 'react-hot-toast'
 const CITIES = ['Colombo', 'Nugegoda', 'Kandy', 'Galle', 'Kelaniya', 'Negombo', 'Matara', 'Jaffna', 'Kurunegala', 'Ratnapura']
 const SPORTS_OPTIONS = ['Futsal', 'Badminton', 'Cricket', 'Basketball', 'Table Tennis', 'Squash']
 const AMENITIES_OPTIONS = ['Air Conditioning', 'Changing Rooms', 'Parking', 'Cafe', 'WiFi', 'Locker', 'First Aid', 'Pro Shop', 'Coaching Available', 'Equipment Rental', 'Cafeteria', 'Video Analysis', 'Bowling Machine', 'Spectator Area', 'Coaching']
+const [uploading, setUploading] = useState(false)
+
+const handleImageUpload = async (e) => {
+  const file = e.target.files[0]
+  if (!file) return
+
+  // Max 5MB
+  if (file.size > 5 * 1024 * 1024) {
+    toast.error('Image must be under 5MB')
+    return
+  }
+
+  setUploading(true)
+  try {
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('venue-images')
+      .upload(fileName, file)
+
+    if (uploadError) throw uploadError
+
+    // Get public URL
+    const { data } = supabase.storage
+      .from('venue-images')
+      .getPublicUrl(fileName)
+
+    // Add to images array
+    setForm(prev => ({
+      ...prev,
+      images: [...prev.images.filter(img => img), data.publicUrl]
+    }))
+
+    toast.success('Image uploaded!')
+  } catch (err) {
+    toast.error('Upload failed: ' + err.message)
+  } finally {
+    setUploading(false)
+  }
+}
 
 const EMPTY_FORM = {
   name: '',
@@ -478,42 +519,93 @@ export default function AdminVenueFormPage() {
           </div>
 
           {/* Images */}
-          <div className="card space-y-4">
-            <h2 className="text-white font-heading font-semibold text-xl pb-2 border-b border-white/5">
-              Images (URLs)
-            </h2>
-            <div className="space-y-2">
-              {form.images.map((img, index) => (
-                <div key={index} className="flex gap-2">
-                  <input
-                    type="url"
-                    value={img}
-                    onChange={e => handleImageChange(index, e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
-                    className="input text-sm"
-                  />
-                  {form.images.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeImageField(index)}
-                      className="px-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 text-xs transition-all"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-              ))}
-              {form.images.length < 5 && (
-                <button
-                  type="button"
-                  onClick={addImageField}
-                  className="text-sm text-primary-400 hover:text-primary-300 transition-colors"
-                >
-                  + Add another image URL
-                </button>
-              )}
-            </div>
-          </div>
+<div className="card space-y-4">
+  <h2 className="text-white font-heading font-semibold text-xl pb-2 border-b border-white/5">
+    Images
+  </h2>
+
+  {/* Upload button */}
+  <div>
+    <label className="block text-sm font-medium text-slate-400 mb-1.5">
+      Upload Image
+    </label>
+    <input
+      type="file"
+      accept="image/*"
+      onChange={handleImageUpload}
+      disabled={uploading}
+      className="block w-full text-sm text-slate-400
+        file:mr-4 file:py-2 file:px-4 file:rounded-xl
+        file:border-0 file:text-sm file:font-semibold
+        file:bg-primary-500/20 file:text-primary-400
+        hover:file:bg-primary-500/30 cursor-pointer"
+    />
+    {uploading && (
+      <p className="text-primary-400 text-xs mt-2 animate-pulse">
+        Uploading image...
+      </p>
+    )}
+  </div>
+
+  {/* Preview uploaded images */}
+  {form.images.filter(img => img).length > 0 && (
+    <div className="flex flex-wrap gap-3">
+      {form.images.filter(img => img).map((img, index) => (
+        <div key={index} className="relative group">
+          <img
+            src={img}
+            alt=""
+            className="w-24 h-24 rounded-xl object-cover border border-white/10"
+          />
+          <button
+            type="button"
+            onClick={() => removeImageField(index)}
+            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs
+              flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+    </div>
+  )}
+
+  {/* Manual URL input */}
+  <div>
+    <label className="block text-sm font-medium text-slate-400 mb-1.5">
+      Or paste image URL
+    </label>
+    {form.images.map((img, index) => (
+      <div key={index} className="flex gap-2 mb-2">
+        <input
+          type="url"
+          value={img}
+          onChange={e => handleImageChange(index, e.target.value)}
+          placeholder="https://..."
+          className="input text-sm"
+        />
+        {form.images.length > 1 && (
+          <button
+            type="button"
+            onClick={() => removeImageField(index)}
+            className="px-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+    ))}
+    {form.images.length < 5 && (
+      <button
+        type="button"
+        onClick={addImageField}
+        className="text-sm text-primary-400 hover:text-primary-300 transition-colors"
+      >
+        + Add another URL
+      </button>
+    )}
+  </div>
+</div>
 
           {/* Submit */}
           <div className="flex gap-3 pb-8">
