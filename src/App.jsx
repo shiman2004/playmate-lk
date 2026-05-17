@@ -54,7 +54,7 @@ export default function App() {
                 <AdminVenueFormPage />
               </ProtectedRoute>
             } />
-            <Route path="admin/venues/:id/edit" element={
+            <Route path="admin/venues/edit/:id" element={
               <ProtectedRoute adminOnly>
                 <AdminVenueFormPage />
               </ProtectedRoute>
