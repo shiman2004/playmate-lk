@@ -4,6 +4,7 @@ import { Eye, EyeOff, LogIn, Loader, AlertCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { isSupabaseConfigured } from '../lib/supabase'
 import toast from 'react-hot-toast'
+import { supabase } from '../lib/supabase'
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({ email: '', password: '' })
@@ -31,7 +32,20 @@ export default function LoginPage() {
     try {
       await signIn(formData)
       toast.success('Welcome back! 👋')
-      navigate(from, { replace: true })
+      // Redirect based on role
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .single()
+
+    if (profile?.role === 'venue_owner') {
+      navigate('/venue-dashboard', { replace: true })
+    } else if (profile?.role === 'super_admin' || profile?.role === 'admin') {
+      navigate('/admin', { replace: true })
+    } else {
+      navigate(from || '/dashboard', { replace: true })
+    }
     } catch (err) {
       setError(err.message || 'Invalid email or password')
     } finally {
