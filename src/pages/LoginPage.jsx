@@ -1,10 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Eye, EyeOff, LogIn, Loader, AlertCircle } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
-import { isSupabaseConfigured } from '../lib/supabase'
+import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import toast from 'react-hot-toast'
-import { supabase } from '../lib/supabase'
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({ email: '', password: '' })
@@ -12,7 +10,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const { signIn } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const from = location.state?.from?.pathname || '/dashboard'
@@ -30,22 +27,38 @@ export default function LoginPage() {
 
     setLoading(true)
     try {
-      await signIn(formData)
-      toast.success('Welcome back! 👋')
-      // Redirect based on role
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', data.user.id)
-      .single()
+      // Step 1 — Sign in
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      })
+      if (signInError) throw signInError
 
-    if (profile?.role === 'venue_owner') {
-      navigate('/venue-dashboard', { replace: true })
-    } else if (profile?.role === 'super_admin' || profile?.role === 'admin') {
-      navigate('/admin', { replace: true })
-    } else {
-      navigate(from || '/dashboard', { replace: true })
-    }
+      // Step 2 — Get role from profiles
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single()
+
+      if (profileError) {
+        // Profile fetch failed but login succeeded — go to default dashboard
+        toast.success('Welcome back! 👋')
+        navigate('/dashboard', { replace: true })
+        return
+      }
+
+      toast.success('Welcome back! 👋')
+
+      // Step 3 — Redirect based on role
+      if (profile?.role === 'venue_owner') {
+        navigate('/venue-dashboard', { replace: true })
+      } else if (profile?.role === 'super_admin' || profile?.role === 'admin') {
+        navigate('/admin', { replace: true })
+      } else {
+        navigate(from || '/dashboard', { replace: true })
+      }
+
     } catch (err) {
       setError(err.message || 'Invalid email or password')
     } finally {
@@ -92,7 +105,9 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1.5">Email Address</label>
+              <label className="block text-sm font-medium text-slate-400 mb-1.5">
+                Email Address
+              </label>
               <input
                 type="email"
                 name="email"
@@ -108,7 +123,10 @@ export default function LoginPage() {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-sm font-medium text-slate-400">Password</label>
-                <Link to="/forgot-password" className="text-xs text-primary-400 hover:text-primary-300 transition-colors">
+                <Link
+                  to="/forgot-password"
+                  className="text-xs text-primary-400 hover:text-primary-300 transition-colors"
+                >
                   Forgot password?
                 </Link>
               </div>
@@ -157,7 +175,10 @@ export default function LoginPage() {
 
         <p className="text-center text-slate-500 text-sm mt-5">
           Don't have an account?{' '}
-          <Link to="/register" className="text-primary-400 hover:text-primary-300 font-semibold transition-colors">
+          <Link
+            to="/register"
+            className="text-primary-400 hover:text-primary-300 font-semibold transition-colors"
+          >
             Create one free
           </Link>
         </p>
