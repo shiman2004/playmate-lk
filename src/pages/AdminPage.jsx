@@ -79,20 +79,20 @@ export default function AdminPage() {
   }
 
   const fetchBookings = async () => {
-    setLoadingBookings(true)
-    try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .select('*, venues(name), profiles(full_name, phone)')
-        .order('created_at', { ascending: false })
-      if (error) throw error
-      setBookings(data || [])
-    } catch (err) {
-      toast.error('Failed to load bookings')
-    } finally {
-      setLoadingBookings(false)
-    }
+  setLoadingBookings(true)
+  try {
+    const { data, error } = await supabase
+      .from('bookings_with_details')
+      .select('*')
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    setBookings(data || [])
+  } catch (err) {
+    toast.error('Failed to load bookings')
+  } finally {
+    setLoadingBookings(false)
   }
+}
 
   const handleDeleteVenue = async (id) => {
     if (!confirm('Are you sure you want to delete this venue?')) return
@@ -409,12 +409,12 @@ export default function AdminPage() {
                           <tr key={b.id} className="hover:bg-white/2 transition-colors group">
                             <td className="px-5 py-4 text-slate-500 font-mono text-xs">#{b.id?.slice(0, 8)}</td>
                             <td className="px-5 py-4">
-                              <p className="text-white font-medium">{b.profiles?.full_name || 'Customer'}</p>
-                              {b.profiles?.phone && (
-                                <p className="text-slate-500 text-xs">📱 {b.profiles.phone}</p>
+                              <p className="text-white font-medium">{b.customer_name || 'Customer'}</p>
+                              {b.customer_phone && (
+                                <p className="text-slate-500 text-xs">📱 {b.customer_phone}</p>
                               )}
                             </td>
-                            <td className="px-5 py-4 text-slate-400">{b.venues?.name || b.venue_name}</td>
+                            <td className="px-5 py-4 text-slate-400">{b.venue_name_detail || b.venue_name}</td>
                             <td className="px-5 py-4">
                               <p className="text-slate-300 text-sm">{b.date}</p>
                               <p className="text-slate-500 text-xs">{b.start_time} – {b.end_time}</p>

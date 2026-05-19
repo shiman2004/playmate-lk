@@ -37,11 +37,16 @@ export default function VenueOwnerDashboard() {
       setVenue(venueData)
 
       // Fetch bookings with user profiles
-      const { data: bookingData } = await supabase
-        .from('bookings')
-        .select(`*, profiles(full_name, phone)`)
-        .eq('venue_id', ownedVenueId)
-        .order('created_at', { ascending: false })
+      // Fetch bookings
+const { data: bookingData, error: bookingError } = await supabase
+  .from('bookings')
+  .select('*')
+  .eq('venue_id', ownedVenueId)
+  .order('created_at', { ascending: false })
+
+if (bookingError) throw bookingError
+setBookings(bookingData || [])
+
       setBookings(bookingData || [])
     } catch (err) {
       toast.error('Failed to load data')
