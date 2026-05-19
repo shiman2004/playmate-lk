@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { Menu, X, Sun, Moon, User, LogOut, LayoutDashboard, Shield, ChevronDown } from 'lucide-react'
+import { Menu, X, Sun, Moon, User, LogOut, LayoutDashboard, Shield, ChevronDown, Building2 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import toast from 'react-hot-toast'
+
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -109,46 +110,53 @@ export default function Navbar() {
                       </p>
                       <p className="text-slate-500 text-xs truncate">{user.email}</p>
                     </div>
-                    <div className="p-1">
-                      <Link
-                        to="/dashboard"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 text-sm transition-all"
-                      >
-                        <LayoutDashboard size={15} /> Dashboard
-                      </Link>
-                      <Link
-                        to="/profile"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 text-sm transition-all"
-                      >
-                        <User size={15} /> Profile
-                      </Link>
-                      {isSuperAdmin && (
-                        <Link
-                          to="/admin"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-primary-400 hover:text-primary-300 hover:bg-primary-500/10 text-sm transition-all"
-                        >
-                          <Shield size={15} /> Super Admin
-                        </Link>
-                      )}
-                      {isVenueOwner && (
-                        <Link
-                          to="/venue-dashboard"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 text-sm transition-all"
-                        >
-                          <Building2 size={15} /> My Venue
-                        </Link>
-                      )}
-                      <button
-                        onClick={() => { setDropdownOpen(false); handleSignOut() }}
-                        className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 text-sm transition-all"
-                      >
-                        <LogOut size={15} /> Sign Out
-                      </button>
-                    </div>
+<div className="p-1">
+  <Link
+    to={isVenueOwner ? '/venue-dashboard' : '/dashboard'}
+    onClick={() => setDropdownOpen(false)}
+    className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 text-sm transition-all"
+  >
+    <LayoutDashboard size={15} />
+    {isVenueOwner ? 'Venue Dashboard' : 'Dashboard'}
+  </Link>
+
+  {!isVenueOwner && (
+    <Link
+      to="/profile"
+      onClick={() => setDropdownOpen(false)}
+      className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 text-sm transition-all"
+    >
+      <User size={15} /> Profile
+    </Link>
+  )}
+
+  {isSuperAdmin && (
+    <Link
+      to="/admin"
+      onClick={() => setDropdownOpen(false)}
+      className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-primary-400 hover:text-primary-300 hover:bg-primary-500/10 text-sm transition-all"
+    >
+      <Shield size={15} /> Super Admin
+    </Link>
+  )}
+
+  {isVenueOwner && (
+    <Link
+      to="/venue-dashboard"
+      onClick={() => setDropdownOpen(false)}
+      className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 text-sm transition-all"
+    >
+      <Building2 size={15} /> My Venue
+    </Link>
+  )}
+
+  <button
+    onClick={() => { setDropdownOpen(false); handleSignOut() }}
+    className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 text-sm transition-all"
+  >
+    <LogOut size={15} /> Sign Out
+  </button>
+</div>
                   </div>
                 )}
               </div>
