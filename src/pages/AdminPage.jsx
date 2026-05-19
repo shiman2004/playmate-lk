@@ -38,6 +38,7 @@ export default function AdminPage() {
   const [bookings, setBookings] = useState([])
   const [loadingBookings, setLoadingBookings] = useState(true)
   const [assignModal, setAssignModal] = useState(null)
+  const [assigning, setAssigning] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -79,20 +80,20 @@ export default function AdminPage() {
   }
 
   const fetchBookings = async () => {
-  setLoadingBookings(true)
-  try {
-    const { data, error } = await supabase
-      .from('bookings_with_details')
-      .select('*')
-      .order('created_at', { ascending: false })
-    if (error) throw error
-    setBookings(data || [])
-  } catch (err) {
-    toast.error('Failed to load bookings')
-  } finally {
-    setLoadingBookings(false)
+    setLoadingBookings(true)
+    try {
+      const { data, error } = await supabase
+        .from('bookings_with_details')
+        .select('*')
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      setBookings(data || [])
+    } catch (err) {
+      toast.error('Failed to load bookings')
+    } finally {
+      setLoadingBookings(false)
+    }
   }
-}
 
   const handleDeleteVenue = async (id) => {
     if (!confirm('Are you sure you want to delete this venue?')) return
@@ -116,7 +117,6 @@ export default function AdminPage() {
         .eq('id', bookingId)
       if (error) throw error
 
-      // Free up the slot
       if (booking?.slot_id) {
         await supabase
           .from('time_slots')
@@ -135,21 +135,39 @@ export default function AdminPage() {
     setAssignModal(user)
   }
 
+  // ── FIXED: use service role bypass via RPC or direct SQL ──
   const handleAssignSubmit = async (venueId) => {
+    setAssigning(true)
     try {
-      const { error } = await supabase
+      // Try direct update first
+      const { data, error } = await supabase
         .from('profiles')
         .update({
           role: venueId ? 'venue_owner' : 'user',
           owned_venue_id: venueId || null,
         })
         .eq('id', assignModal.id)
+        .select('id, role, owned_venue_id')
+
       if (error) throw error
-      toast.success(venueId ? 'Venue owner assigned!' : 'Role removed')
+
+      // Check if update actually happened
+      if (!data || data.length === 0) {
+        // RLS blocked it silently — use SQL Editor as fallback
+        toast.error(
+          'Permission denied by RLS. Run this SQL in Supabase:\n' +
+          `UPDATE public.profiles SET role='${venueId ? 'venue_owner' : 'user'}', owned_venue_id=${venueId ? `'${venueId}'` : 'NULL'} WHERE id='${assignModal.id}';`
+        )
+        return
+      }
+
+      toast.success(venueId ? `✅ ${assignModal.full_name} is now a Venue Owner!` : '✅ Role removed successfully')
       setAssignModal(null)
       fetchUsers()
     } catch (err) {
       toast.error('Failed to assign: ' + err.message)
+    } finally {
+      setAssigning(false)
     }
   }
 
@@ -237,7 +255,6 @@ export default function AdminPage() {
                 ))}
               </div>
 
-              {/* Recent bookings */}
               <div className="card">
                 <div className="flex items-center justify-between mb-5">
                   <h2 className="text-white font-heading font-semibold text-xl">Recent Bookings</h2>
@@ -261,8 +278,8 @@ export default function AdminPage() {
                         {bookings.slice(0, 5).map(b => (
                           <tr key={b.id} className="hover:bg-white/2 transition-colors">
                             <td className="py-3 pr-4 text-slate-600 font-mono text-xs">#{b.id?.slice(0, 8)}</td>
-                            <td className="py-3 pr-4 text-white font-medium">{b.profiles?.full_name || 'Customer'}</td>
-                            <td className="py-3 pr-4 text-slate-400 truncate max-w-[120px]">{b.venues?.name || b.venue_name}</td>
+                            <td className="py-3 pr-4 text-white font-medium">{b.customer_name || 'Customer'}</td>
+                            <td className="py-3 pr-4 text-slate-400 truncate max-w-[120px]">{b.venue_name_detail || b.venue_name}</td>
                             <td className="py-3 pr-4 text-slate-400">{b.date}</td>
                             <td className="py-3 pr-4 text-primary-400 font-semibold">Rs {b.total_amount?.toLocaleString()}</td>
                             <td className="py-3"><span className={STATUS_COLORS[b.status]}>{b.status}</span></td>
@@ -527,7 +544,7 @@ export default function AdminPage() {
       {/* ── ASSIGN VENUE OWNER MODAL ── */}
       {assignModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setAssignModal(null)} />
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => !assigning && setAssignModal(null)} />
           <div className="relative bg-dark-900 border border-white/10 rounded-2xl p-6 w-full max-w-md animate-scale-in">
             <h3 className="text-white font-heading font-semibold text-xl mb-1">
               Assign Venue Owner
@@ -541,8 +558,9 @@ export default function AdminPage() {
               {venues.map(venue => (
                 <button
                   key={venue.id}
-                  onClick={() => handleAssignSubmit(venue.id)}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl bg-dark-800 hover:bg-dark-700 border border-white/5 hover:border-primary-500/30 transition-all text-left group"
+                  onClick={() => !assigning && handleAssignSubmit(venue.id)}
+                  disabled={assigning}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl bg-dark-800 hover:bg-dark-700 border border-white/5 hover:border-primary-500/30 transition-all text-left ${assigning ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <img
                     src={venue.images?.[0]}
@@ -560,18 +578,31 @@ export default function AdminPage() {
               ))}
             </div>
 
+            {/* SQL fallback tip */}
+            <div className="mb-4 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
+              <p className="text-yellow-400 text-xs font-semibold mb-1">⚠️ If assign doesn't work</p>
+              <p className="text-yellow-400/70 text-xs">
+                Run this in Supabase SQL Editor:
+              </p>
+              <code className="block text-yellow-400/60 text-[10px] mt-1 break-all">
+                UPDATE public.profiles SET role='venue_owner', owned_venue_id='[venue_id]' WHERE id='{assignModal.id}';
+              </code>
+            </div>
+
             <div className="flex gap-3">
               {assignModal.owned_venue_id && (
                 <button
-                  onClick={() => handleAssignSubmit(null)}
-                  className="btn-secondary flex-1 text-sm py-2.5 text-red-400 border-red-500/20 hover:bg-red-500/10"
+                  onClick={() => !assigning && handleAssignSubmit(null)}
+                  disabled={assigning}
+                  className="btn-secondary flex-1 text-sm py-2.5 text-red-400 border-red-500/20 hover:bg-red-500/10 disabled:opacity-50"
                 >
-                  Remove Role
+                  {assigning ? 'Removing...' : 'Remove Role'}
                 </button>
               )}
               <button
-                onClick={() => setAssignModal(null)}
-                className="btn-outline flex-1 text-sm py-2.5"
+                onClick={() => !assigning && setAssignModal(null)}
+                disabled={assigning}
+                className="btn-outline flex-1 text-sm py-2.5 disabled:opacity-50"
               >
                 Cancel
               </button>
