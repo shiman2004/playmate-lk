@@ -72,30 +72,34 @@ setBookings(bookingData || [])
   }, [selectedDate, activeTab, ownedVenueId])
 
   const handleCancelBooking = async (bookingId) => {
-    if (!confirm('Cancel this booking?')) return
-    try {
-      // Cancel booking
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status: 'cancelled' })
-        .eq('id', bookingId)
-      if (error) throw error
+  if (!confirm('Cancel this booking? The slot will become available again.')) return
+  try {
+    const booking = bookings.find(b => b.id === bookingId)
 
-      // Free up the slot
-      const booking = bookings.find(b => b.id === bookingId)
-      if (booking?.slot_id) {
-        await supabase
-          .from('time_slots')
-          .update({ is_available: true })
-          .eq('id', booking.slot_id)
-      }
+    // ✅ Cancel the booking
+    const { error } = await supabase
+      .from('bookings')
+      .update({ status: 'cancelled' })
+      .eq('id', bookingId)
+    if (error) throw error
 
-      toast.success('Booking cancelled')
-      fetchAll()
-    } catch (err) {
-      toast.error('Failed to cancel booking')
+    // ✅ Free ALL slots in the booking time range
+    if (booking) {
+      await supabase
+        .from('time_slots')
+        .update({ is_available: true })
+        .eq('venue_id', booking.venue_id)
+        .eq('date', booking.date)
+        .gte('start_time', booking.start_time)
+        .lt('start_time', booking.end_time)
     }
+
+    toast.success('Booking cancelled — slot is now available')
+    fetchAll()
+  } catch (err) {
+    toast.error('Failed to cancel: ' + err.message)
   }
+}
 
   const handleToggleSlot = async (slot) => {
     try {
@@ -297,59 +301,54 @@ setBookings(bookingData || [])
             </h2>
             <div className="space-y-3">
               {bookings.map(b => {
-                const cancellable = canCancelBooking(b) && b.status === 'confirmed'
-                const withinCancelWindow = b.status === 'confirmed' && !canCancelBooking(b)
+  // ✅ Venue owner can cancel ANY confirmed booking — no time restriction
+  const canCancel = b.status === 'confirmed'
 
-                return (
-                  <div key={b.id} className="card flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="text-white font-semibold">
-                          {b.profiles?.full_name || 'Customer'}
-                        </p>
-                        <span className={STATUS_COLORS[b.status]}>{b.status}</span>
-                      </div>
-                      {b.profiles?.phone && (
-                        <p className="text-slate-500 text-xs mb-1">📱 {b.profiles.phone}</p>
-                      )}
-                      <div className="flex flex-wrap gap-3 text-xs text-slate-500">
-                        <span>📅 {b.date}</span>
-                        <span>🕐 {b.start_time} – {b.end_time}</span>
-                        <span>🏃 {b.sport}</span>
-                        <span className="text-primary-400 font-semibold">
-                          Rs {b.total_amount?.toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
+  return (
+    <div key={b.id} className="card flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1">
+          <p className="text-white font-semibold">
+            {b.profiles?.full_name || 'Customer'}
+          </p>
+          <span className={STATUS_COLORS[b.status]}>{b.status}</span>
+        </div>
+        {b.profiles?.phone && (
+          <p className="text-slate-500 text-xs mb-1">📱 {b.profiles.phone}</p>
+        )}
+        <div className="flex flex-wrap gap-3 text-xs text-slate-500">
+          <span>📅 {b.date}</span>
+          <span>🕐 {b.start_time} – {b.end_time}</span>
+          <span>🏃 {b.sport}</span>
+          <span className="text-primary-400 font-semibold">
+            Rs {b.total_amount?.toLocaleString()}
+          </span>
+        </div>
+      </div>
 
-                    <div className="shrink-0">
-                      {cancellable && (
-                        <button
-                          onClick={() => handleCancelBooking(b.id)}
-                          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 text-xs font-semibold transition-all"
-                        >
-                          <XCircle size={13} /> Cancel
-                        </button>
-                      )}
-                      {withinCancelWindow && (
-                        <div className="px-3 py-2 rounded-xl bg-dark-800 border border-white/5 text-slate-600 text-xs">
-                          Cannot cancel within 24hrs
-                        </div>
-                      )}
-                      {b.status === 'cancelled' && (
-                        <div className="flex items-center gap-1 text-slate-600 text-xs">
-                          <XCircle size={12} /> Cancelled
-                        </div>
-                      )}
-                      {b.status === 'completed' && (
-                        <div className="flex items-center gap-1 text-slate-600 text-xs">
-                          <CheckCircle size={12} /> Completed
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
+      <div className="shrink-0">
+        {canCancel && (
+          <button
+            onClick={() => handleCancelBooking(b.id)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 text-xs font-semibold transition-all"
+          >
+            <XCircle size={13} /> Cancel Booking
+          </button>
+        )}
+        {b.status === 'cancelled' && (
+          <div className="flex items-center gap-1 text-slate-600 text-xs">
+            <XCircle size={12} /> Cancelled
+          </div>
+        )}
+        {b.status === 'completed' && (
+          <div className="flex items-center gap-1 text-slate-600 text-xs">
+            <CheckCircle size={12} /> Completed
+          </div>
+        )}
+      </div>
+    </div>
+  )
+})}
               {bookings.length === 0 && (
                 <div className="card text-center py-12">
                   <div className="text-4xl mb-3">📅</div>
