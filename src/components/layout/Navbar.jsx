@@ -5,7 +5,6 @@ import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import toast from 'react-hot-toast'
 
-
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -43,6 +42,7 @@ export default function Navbar() {
     }`}>
       <div className="container-custom">
         <div className="flex items-center justify-between h-16 md:h-18">
+
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
             <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center shadow-lg shadow-primary-500/30 group-hover:shadow-primary-500/50 transition-all duration-200">
@@ -55,7 +55,7 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop Nav */}
+          {/* Desktop Nav Links */}
           <div className="hidden md:flex items-center gap-1">
             {navLinks.map(link => (
               <NavLink
@@ -74,7 +74,7 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Right Side */}
+          {/* Desktop Right Side */}
           <div className="hidden md:flex items-center gap-3">
             {/* Theme Toggle */}
             <button
@@ -87,6 +87,7 @@ export default function Navbar() {
 
             {user ? (
               <div className="relative">
+                {/* Avatar Button */}
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="flex items-center gap-2 px-3 py-2 rounded-xl bg-dark-800 hover:bg-dark-700 border border-white/10 transition-all"
@@ -102,61 +103,73 @@ export default function Navbar() {
                   <ChevronDown size={14} className={`text-slate-500 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
+                {/* Dropdown */}
                 {dropdownOpen && (
                   <div className="absolute right-0 mt-2 w-52 bg-dark-900 border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden animate-scale-in">
+                    {/* User info */}
                     <div className="p-3 border-b border-white/5">
                       <p className="text-white text-sm font-semibold truncate">
                         {profile?.full_name || 'User'}
                       </p>
                       <p className="text-slate-500 text-xs truncate">{user.email}</p>
+                      {isSuperAdmin && (
+                        <span className="badge-green text-[10px] mt-1">Super Admin</span>
+                      )}
+                      {isVenueOwner && (
+                        <span className="badge-yellow text-[10px] mt-1">Venue Owner</span>
+                      )}
                     </div>
-<div className="p-1">
-  <Link
-    to={isVenueOwner ? '/venue-dashboard' : '/dashboard'}
-    onClick={() => setDropdownOpen(false)}
-    className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 text-sm transition-all"
-  >
-    <LayoutDashboard size={15} />
-    {isVenueOwner ? 'Venue Dashboard' : 'Dashboard'}
-  </Link>
 
-  {!isVenueOwner && (
-    <Link
-      to="/profile"
-      onClick={() => setDropdownOpen(false)}
-      className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 text-sm transition-all"
-    >
-      <User size={15} /> Profile
-    </Link>
-  )}
+                    <div className="p-1">
+                      {/* Dashboard / Venue Dashboard */}
+                      <Link
+                        to={isVenueOwner ? '/venue-dashboard' : '/dashboard'}
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 text-sm transition-all"
+                      >
+                        <LayoutDashboard size={15} />
+                        {isVenueOwner ? 'Venue Dashboard' : 'Dashboard'}
+                      </Link>
 
-  {isSuperAdmin && (
-    <Link
-      to="/admin"
-      onClick={() => setDropdownOpen(false)}
-      className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-primary-400 hover:text-primary-300 hover:bg-primary-500/10 text-sm transition-all"
-    >
-      <Shield size={15} /> Super Admin
-    </Link>
-  )}
+                      {/* Profile — ALL users */}
+                      <Link
+                        to="/profile"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 text-sm transition-all"
+                      >
+                        <User size={15} /> Profile
+                      </Link>
 
-  {isVenueOwner && (
-    <Link
-      to="/venue-dashboard"
-      onClick={() => setDropdownOpen(false)}
-      className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 text-sm transition-all"
-    >
-      <Building2 size={15} /> My Venue
-    </Link>
-  )}
+                      {/* Super Admin — super_admin only */}
+                      {isSuperAdmin && (
+                        <Link
+                          to="/admin"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-primary-400 hover:text-primary-300 hover:bg-primary-500/10 text-sm transition-all"
+                        >
+                          <Shield size={15} /> Super Admin
+                        </Link>
+                      )}
 
-  <button
-    onClick={() => { setDropdownOpen(false); handleSignOut() }}
-    className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 text-sm transition-all"
-  >
-    <LogOut size={15} /> Sign Out
-  </button>
-</div>
+                      {/* My Venue — venue_owner only */}
+                      {isVenueOwner && (
+                        <Link
+                          to="/venue-dashboard"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 text-sm transition-all"
+                        >
+                          <Building2 size={15} /> My Venue
+                        </Link>
+                      )}
+
+                      {/* Sign Out */}
+                      <button
+                        onClick={() => { setDropdownOpen(false); handleSignOut() }}
+                        className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 text-sm transition-all"
+                      >
+                        <LogOut size={15} /> Sign Out
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -177,9 +190,10 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Mobile Menu */}
+        {/* ── MOBILE MENU ── */}
         {isOpen && (
           <div className="md:hidden bg-dark-900/95 backdrop-blur-xl border-t border-white/5 py-4 animate-slide-down">
+            {/* Nav links */}
             <div className="space-y-1 px-2 pb-3">
               {navLinks.map(link => (
                 <NavLink
@@ -188,13 +202,17 @@ export default function Navbar() {
                   onClick={() => setIsOpen(false)}
                   className={({ isActive }) =>
                     `block px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                      isActive ? 'text-primary-400 bg-primary-500/10' : 'text-slate-400 hover:text-white hover:bg-white/5'
+                      isActive
+                        ? 'text-primary-400 bg-primary-500/10'
+                        : 'text-slate-400 hover:text-white hover:bg-white/5'
                     }`
                   }
                 >
                   {link.label}
                 </NavLink>
               ))}
+
+              {/* Theme toggle */}
               <button
                 onClick={() => { toggleTheme(); setIsOpen(false) }}
                 className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-all"
@@ -203,28 +221,82 @@ export default function Navbar() {
                 {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
               </button>
             </div>
+
+            {/* Auth links */}
             <div className="border-t border-white/5 px-2 pt-3 space-y-1">
               {user ? (
                 <>
-                  <Link to="/dashboard" onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm text-slate-300 hover:text-white hover:bg-white/5">
-                    <LayoutDashboard size={15}/> Dashboard
+                  {/* User info */}
+                  <div className="px-4 py-2 mb-1">
+                    <p className="text-white text-sm font-semibold">
+                      {profile?.full_name || 'User'}
+                    </p>
+                    <p className="text-slate-500 text-xs truncate">{user.email}</p>
+                  </div>
+
+                  {/* Dashboard */}
+                  <Link
+                    to={isVenueOwner ? '/venue-dashboard' : '/dashboard'}
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm text-slate-300 hover:text-white hover:bg-white/5"
+                  >
+                    <LayoutDashboard size={15} />
+                    {isVenueOwner ? 'Venue Dashboard' : 'Dashboard'}
                   </Link>
-                  <Link to="/profile" onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm text-slate-300 hover:text-white hover:bg-white/5">
-                    <User size={15}/> Profile
+
+                  {/* Profile — ALL users */}
+                  <Link
+                    to="/profile"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm text-slate-300 hover:text-white hover:bg-white/5"
+                  >
+                    <User size={15} /> Profile
                   </Link>
-                  <button onClick={() => { setIsOpen(false); handleSignOut() }}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm text-red-400 hover:bg-red-500/10">
-                    <LogOut size={15}/> Sign Out
+
+                  {/* Super Admin — super_admin only */}
+                  {isSuperAdmin && (
+                    <Link
+                      to="/admin"
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm text-primary-400 hover:text-primary-300 hover:bg-primary-500/10"
+                    >
+                      <Shield size={15} /> Super Admin
+                    </Link>
+                  )}
+
+                  {/* My Venue — venue_owner only */}
+                  {isVenueOwner && (
+                    <Link
+                      to="/venue-dashboard"
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                    >
+                      <Building2 size={15} /> My Venue
+                    </Link>
+                  )}
+
+                  {/* Sign Out */}
+                  <button
+                    onClick={() => { setIsOpen(false); handleSignOut() }}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm text-red-400 hover:bg-red-500/10"
+                  >
+                    <LogOut size={15} /> Sign Out
                   </button>
                 </>
               ) : (
                 <div className="flex gap-2 px-2">
-                  <Link to="/login" onClick={() => setIsOpen(false)} className="btn-secondary flex-1 text-center text-sm py-2.5">
+                  <Link
+                    to="/login"
+                    onClick={() => setIsOpen(false)}
+                    className="btn-secondary flex-1 text-center text-sm py-2.5"
+                  >
                     Log In
                   </Link>
-                  <Link to="/register" onClick={() => setIsOpen(false)} className="btn-primary flex-1 text-center text-sm py-2.5">
+                  <Link
+                    to="/register"
+                    onClick={() => setIsOpen(false)}
+                    className="btn-primary flex-1 text-center text-sm py-2.5"
+                  >
                     Sign Up
                   </Link>
                 </div>
@@ -238,14 +310,6 @@ export default function Navbar() {
       {dropdownOpen && (
         <div className="fixed inset-0 z-[-1]" onClick={() => setDropdownOpen(false)} />
       )}
-      <Link
-        to="/dashboard"
-        onClick={() => setDropdownOpen(false)}
-        className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 text-sm transition-all"
-      >
-        <LayoutDashboard size={15} />
-        {isVenueOwner ? 'Venue Dashboard' : 'Dashboard'}
-      </Link>
     </nav>
   )
 }
