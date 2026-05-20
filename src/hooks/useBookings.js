@@ -66,60 +66,50 @@ const createBooking = async (bookingData) => {
     return newBooking
   }
 
-  const { venue_name, venue_image, ...cleanData } = bookingData
+  const { venue_name, venue_image, slot_ids, ...cleanData } = bookingData
 
-  // Only insert one booking record (first slot call)
-  // Check if booking already exists for this date/start_time/venue
-  const existing = bookings.find(b =>
-    b.venue_id === bookingData.venue_id &&
-    b.date === bookingData.date &&
-    b.start_time === bookingData.start_time &&
-    b.status === 'confirmed'
-  )
+  // ✅ Step 1 — Create ONE single booking record
+  const { data, error } = await supabase
+    .from('bookings')
+    .insert({
+      user_id: user.id,
+      venue_id: cleanData.venue_id,
+      date: cleanData.date,
+      start_time: cleanData.start_time,
+      end_time: cleanData.end_time,
+      sport: cleanData.sport,
+      total_amount: cleanData.total_amount,
+      slot_id: slot_ids?.[0] || null, // store first slot id as reference
+      status: 'confirmed',
+    })
+    .select()
+    .single()
 
-  let bookingRecord = existing
+  if (error) throw error
 
-  if (!existing) {
-    const { data, error } = await supabase
-      .from('bookings')
-      .insert({
-        user_id: user.id,
-        venue_id: cleanData.venue_id,
-        date: cleanData.date,
-        start_time: cleanData.start_time,
-        end_time: cleanData.end_time,
-        sport: cleanData.sport,
-        total_amount: cleanData.total_amount,
-        slot_id: cleanData.slot_id,
-        status: 'confirmed',
-      })
-      .select()
-      .single()
-
-    if (error) throw error
-    bookingRecord = data
-  }
-
-  // Mark slot as unavailable
-  if (bookingData.slot_id) {
-    await supabase
+  // ✅ Step 2 — Mark ALL selected slots as unavailable
+  if (slot_ids && slot_ids.length > 0) {
+    const { error: slotError } = await supabase
       .from('time_slots')
       .update({ is_available: false })
-      .eq('id', bookingData.slot_id)
+      .in('id', slot_ids) // ← marks ALL slots at once
+    
+    if (slotError) {
+      console.error('Failed to mark slots unavailable:', slotError.message)
+    }
   }
 
-  if (!existing) {
-    setBookings(prev => [{
-      ...bookingRecord,
-      venue_name: venue_name || 'Venue',
-      venue_image: venue_image || null,
-    }, ...prev])
-  }
+  // ✅ Step 3 — Add to local state
+  setBookings(prev => [{
+    ...data,
+    venue_name: venue_name || 'Venue',
+    venue_image: venue_image || null,
+  }, ...prev])
 
-  return bookingRecord
+  return data
 }
 
-  const cancelBooking = async (bookingId) => {
+const cancelBooking = async (bookingId) => {
   if (!isSupabaseConfigured) {
     await new Promise(r => setTimeout(r, 500))
     setBookings(prev =>
@@ -128,7 +118,6 @@ const createBooking = async (bookingData) => {
     return
   }
 
-  // Get booking details first
   const booking = bookings.find(b => b.id === bookingId)
 
   const { error } = await supabase
@@ -139,12 +128,15 @@ const createBooking = async (bookingData) => {
 
   if (error) throw error
 
-  // Free up the slot
-  if (booking?.slot_id) {
+  // Free up ALL slots in the time range for this booking
+  if (booking) {
     await supabase
       .from('time_slots')
       .update({ is_available: true })
-      .eq('id', booking.slot_id)
+      .eq('venue_id', booking.venue_id)
+      .eq('date', booking.date)
+      .gte('start_time', booking.start_time)
+      .lt('start_time', booking.end_time) // free all slots between start and end
   }
 
   setBookings(prev =>

@@ -187,18 +187,17 @@ export default function BookingModal({ venue, onClose }) {
   }
 
   // ── Handle booking submission ──────────────────────────────
-  const handleBooking = async () => {
-    if (!user) {
-      toast.error('Please log in to book')
-      navigate('/login')
-      return
-    }
-    if (!startSlot || !meetsMinimum) return
+    const handleBooking = async () => {
+      if (!user) {
+        toast.error('Please log in to book')
+        navigate('/login')
+        return
+      }
+      if (!startSlot || !meetsMinimum) return
 
-    setSubmitting(true)
-    try {
-      // Book all selected slots
-      for (const slot of selectedSlots) {
+      setSubmitting(true)
+      try {
+        // ✅ Create ONE booking record only
         await createBooking({
           venue_id: venue.id,
           venue_name: venue.name,
@@ -208,17 +207,16 @@ export default function BookingModal({ venue, onClose }) {
           end_time: bookingEndTime,
           sport: venue.sports?.[0] || 'Sports',
           total_amount: totalPrice,
-          slot_id: slot.id,
+          slot_ids: selectedSlots.map(s => s.id), // ← pass ALL slot IDs
         })
+        await refetch()
+        setStep(3)
+      } catch (err) {
+        toast.error(err.message || 'Booking failed. Please try again.')
+      } finally {
+        setSubmitting(false)
       }
-      await refetch()
-      setStep(3)
-    } catch (err) {
-      toast.error(err.message || 'Booking failed. Please try again.')
-    } finally {
-      setSubmitting(false)
     }
-  }
 
   const hasNightInSelection = selectedSlots.some(s => isNightSlot(s.start_time, CUTOFF_TIME))
 
