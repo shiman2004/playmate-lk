@@ -393,7 +393,7 @@ export default function BookingModal({ venue, onClose }) {
                         onClick={() => handleSlotClick(slot)}
                         className={`py-2 px-1 rounded-xl text-[10px] font-semibold transition-all border flex flex-col items-center gap-0.5 ${getSlotStyle(slot)}`}
                       >
-                        <span>{slot.start_time?.slice(0, 5)}</span>
+                        <span>{slot.start_time?.slice(0, 5)} - {slot.end_time?.slice(0, 5)}</span>
                         <span className="text-[8px] opacity-60">
                           {isNightSlot(slot.start_time, CUTOFF_TIME) ? '🌙' : '☀️'}
                         </span>
