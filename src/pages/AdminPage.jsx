@@ -98,12 +98,22 @@ export default function AdminPage() {
   const handleDeleteVenue = async (id) => {
     if (!confirm('Are you sure you want to delete this venue?')) return
     try {
-      const { error } = await supabase.from('venues').delete().eq('id', id)
+      const { error, count } = await supabase
+        .from('venues')
+        .delete({ count: 'exact' })
+        .eq('id', id)
+
       if (error) throw error
-      toast.success('Venue deleted')
+
+      if (count === 0) {
+        toast.error('Delete failed — RLS policy blocked it. Check Supabase policies.')
+        return
+      }
+
+      toast.success('Venue deleted successfully')
       fetchVenues()
     } catch (err) {
-      toast.error('Failed to delete venue')
+      toast.error('Failed to delete: ' + err.message)
     }
   }
 
