@@ -17,6 +17,7 @@ const EMPTY_FORM = {
   email: '',
   description: '',
   price_per_hour: '',
+  half_hour_price: '',
   night_surcharge: 0,
   price_cutoff_time: '17:00',
   open_time: '06:00',
@@ -65,6 +66,7 @@ export default function AdminVenueFormPage() {
         amenities: data.amenities || [],
         images: data.images?.length ? data.images : [''],
         night_surcharge: data.night_surcharge || 0,
+        half_hour_price: data.half_hour_price || '',
       })
     } catch (err) {
       toast.error('Failed to load venue')
@@ -111,7 +113,6 @@ export default function AdminVenueFormPage() {
     }))
   }
 
-  // ── Image Upload to Supabase Storage ──
   const handleImageUpload = async (e) => {
     const file = e.target.files[0]
     if (!file) return
@@ -136,13 +137,9 @@ export default function AdminVenueFormPage() {
         .from('venue-images')
         .getPublicUrl(fileName)
 
-      // Add URL to images array (replace empty slots first)
       setForm(prev => {
         const existingImages = prev.images.filter(img => img.trim() !== '')
-        return {
-          ...prev,
-          images: [...existingImages, data.publicUrl]
-        }
+        return { ...prev, images: [...existingImages, data.publicUrl] }
       })
 
       toast.success('Image uploaded!')
@@ -150,7 +147,6 @@ export default function AdminVenueFormPage() {
       toast.error('Upload failed: ' + err.message)
     } finally {
       setUploading(false)
-      // Reset file input
       e.target.value = ''
     }
   }
@@ -162,6 +158,7 @@ export default function AdminVenueFormPage() {
     if (!form.city) e.city = 'City is required'
     if (!form.phone.trim()) e.phone = 'Phone is required'
     if (!form.price_per_hour) e.price_per_hour = 'Price per hour is required'
+    if (!form.half_hour_price) e.half_hour_price = 'Half hour price is required'
     if (form.sports.length === 0) e.sports = 'Select at least one sport'
     return e
   }
@@ -187,6 +184,7 @@ export default function AdminVenueFormPage() {
         email: form.email.trim(),
         description: form.description.trim(),
         price_per_hour: parseInt(form.price_per_hour),
+        half_hour_price: parseInt(form.half_hour_price) || 0,
         night_surcharge: parseInt(form.night_surcharge) || 0,
         price_cutoff_time: form.price_cutoff_time,
         open_time: form.open_time,
@@ -230,6 +228,12 @@ export default function AdminVenueFormPage() {
     )
   }
 
+  // Live pricing preview calculations
+  const pricePerHour = parseInt(form.price_per_hour || 0)
+  const halfHourPrice = parseInt(form.half_hour_price || 0)
+  const nightSurcharge = parseInt(form.night_surcharge || 0)
+  const nightHalfHour = Math.round(nightSurcharge / 2)
+
   return (
     <div className="bg-dark-950 min-h-screen pt-16">
       <div className="container-custom py-8 max-w-3xl">
@@ -251,7 +255,7 @@ export default function AdminVenueFormPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
 
-          {/* Basic Info */}
+          {/* ── Basic Info ── */}
           <div className="card space-y-4">
             <h2 className="text-white font-heading font-semibold text-xl pb-2 border-b border-white/5">
               Basic Information
@@ -340,15 +344,18 @@ export default function AdminVenueFormPage() {
             </div>
           </div>
 
-          {/* Pricing */}
+          {/* ── Pricing ── */}
           <div className="card space-y-4">
             <h2 className="text-white font-heading font-semibold text-xl pb-2 border-b border-white/5">
               Pricing
             </h2>
 
+            {/* Row 1: Day rate + Half hour price */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1.5">Day Rate (Rs/hour) *</label>
+                <label className="block text-sm font-medium text-slate-400 mb-1.5">
+                  Day Rate (Rs/hour) *
+                </label>
                 <input
                   name="price_per_hour"
                   type="number"
@@ -360,7 +367,28 @@ export default function AdminVenueFormPage() {
                 {errors.price_per_hour && <p className="text-red-400 text-xs mt-1">{errors.price_per_hour}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1.5">Night Surcharge (Rs)</label>
+                <label className="block text-sm font-medium text-slate-400 mb-1.5">
+                  Half Hour Price (Rs) *
+                </label>
+                <input
+                  name="half_hour_price"
+                  type="number"
+                  value={form.half_hour_price}
+                  onChange={handleChange}
+                  placeholder="e.g. 1500"
+                  className="input"
+                />
+                {errors.half_hour_price && <p className="text-red-400 text-xs mt-1">{errors.half_hour_price}</p>}
+                <p className="text-slate-600 text-xs mt-1">Price per 30-minute block</p>
+              </div>
+            </div>
+
+            {/* Row 2: Night surcharge + Cutoff time */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-1.5">
+                  Night Surcharge (Rs/hr)
+                </label>
                 <input
                   name="night_surcharge"
                   type="number"
@@ -369,52 +397,81 @@ export default function AdminVenueFormPage() {
                   placeholder="e.g. 500"
                   className="input"
                 />
-                <p className="text-slate-600 text-xs mt-1">
-                  Night rate = Day rate + Surcharge
-                  {form.price_per_hour && form.night_surcharge > 0 && (
-                    <span className="text-primary-400 ml-1">
-                      = Rs {(parseInt(form.price_per_hour || 0) + parseInt(form.night_surcharge || 0)).toLocaleString()}/hr
-                    </span>
-                  )}
-                </p>
+                <p className="text-slate-600 text-xs mt-1">Added on top of base rate after cutoff</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-1.5">
+                  Night Rate Starts At
+                </label>
+                <input
+                  name="price_cutoff_time"
+                  type="time"
+                  value={form.price_cutoff_time}
+                  onChange={handleChange}
+                  className="input"
+                />
+                <p className="text-slate-600 text-xs mt-1">Slots from this time use night rate</p>
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1.5">Night Rate Starts At</label>
-              <input
-                name="price_cutoff_time"
-                type="time"
-                value={form.price_cutoff_time}
-                onChange={handleChange}
-                className="input w-40"
-              />
-              <p className="text-slate-600 text-xs mt-1">Slots from this time onwards use the night rate</p>
-            </div>
-
-            {form.price_per_hour && (
-              <div className="grid grid-cols-2 gap-3 p-4 rounded-xl bg-dark-800 border border-white/5">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">☀️</span>
-                  <div>
-                    <p className="text-slate-400 text-xs">Before {form.price_cutoff_time}</p>
-                    <p className="text-white font-bold">Rs {parseInt(form.price_per_hour || 0).toLocaleString()}/hr</p>
+            {/* Live pricing preview */}
+            {form.price_per_hour && form.half_hour_price && (
+              <div className="rounded-xl bg-dark-800 border border-white/5 p-4">
+                <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide mb-3">
+                  Pricing Preview
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Day rates */}
+                  <div className="p-3 rounded-xl bg-yellow-500/5 border border-yellow-500/10">
+                    <p className="text-yellow-400 text-xs font-semibold mb-2">☀️ Day Rate (before {form.price_cutoff_time})</p>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">30 min</span>
+                        <span className="text-white font-semibold">Rs {halfHourPrice.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">1 hour</span>
+                        <span className="text-white font-semibold">Rs {pricePerHour.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">1.5 hours</span>
+                        <span className="text-white font-semibold">Rs {(pricePerHour + halfHourPrice).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">2 hours</span>
+                        <span className="text-white font-semibold">Rs {(pricePerHour * 2).toLocaleString()}</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🌙</span>
-                  <div>
-                    <p className="text-slate-400 text-xs">From {form.price_cutoff_time}</p>
-                    <p className="text-white font-bold">
-                      Rs {(parseInt(form.price_per_hour || 0) + parseInt(form.night_surcharge || 0)).toLocaleString()}/hr
-                    </p>
+
+                  {/* Night rates */}
+                  <div className="p-3 rounded-xl bg-blue-500/5 border border-blue-500/10">
+                    <p className="text-blue-400 text-xs font-semibold mb-2">🌙 Night Rate (from {form.price_cutoff_time})</p>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">30 min</span>
+                        <span className="text-white font-semibold">Rs {(halfHourPrice + nightHalfHour).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">1 hour</span>
+                        <span className="text-white font-semibold">Rs {(pricePerHour + nightSurcharge).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">1.5 hours</span>
+                        <span className="text-white font-semibold">Rs {(pricePerHour + nightSurcharge + halfHourPrice + nightHalfHour).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">2 hours</span>
+                        <span className="text-white font-semibold">Rs {((pricePerHour + nightSurcharge) * 2).toLocaleString()}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Settings */}
+          {/* ── Settings ── */}
           <div className="card space-y-4">
             <h2 className="text-white font-heading font-semibold text-xl pb-2 border-b border-white/5">
               Settings
@@ -454,7 +511,7 @@ export default function AdminVenueFormPage() {
             </div>
           </div>
 
-          {/* Sports */}
+          {/* ── Sports ── */}
           <div className="card space-y-4">
             <h2 className="text-white font-heading font-semibold text-xl pb-2 border-b border-white/5">Sports *</h2>
             <div className="flex flex-wrap gap-2">
@@ -476,7 +533,7 @@ export default function AdminVenueFormPage() {
             {errors.sports && <p className="text-red-400 text-xs">{errors.sports}</p>}
           </div>
 
-          {/* Amenities */}
+          {/* ── Amenities ── */}
           <div className="card space-y-4">
             <h2 className="text-white font-heading font-semibold text-xl pb-2 border-b border-white/5">Amenities</h2>
             <div className="flex flex-wrap gap-2">
@@ -497,11 +554,10 @@ export default function AdminVenueFormPage() {
             </div>
           </div>
 
-          {/* Images */}
+          {/* ── Images ── */}
           <div className="card space-y-4">
             <h2 className="text-white font-heading font-semibold text-xl pb-2 border-b border-white/5">Images</h2>
 
-            {/* Upload button */}
             <div>
               <label className="block text-sm font-medium text-slate-400 mb-1.5">Upload from device</label>
               <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed cursor-pointer transition-all ${
@@ -526,7 +582,6 @@ export default function AdminVenueFormPage() {
               </label>
             </div>
 
-            {/* Image previews */}
             {form.images.filter(img => img.trim()).length > 0 && (
               <div>
                 <p className="text-slate-500 text-xs mb-2">Uploaded images:</p>
@@ -541,8 +596,7 @@ export default function AdminVenueFormPage() {
                       <button
                         type="button"
                         onClick={() => removeImageField(form.images.indexOf(img))}
-                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs
-                          flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <X size={10} />
                       </button>
@@ -552,7 +606,6 @@ export default function AdminVenueFormPage() {
               </div>
             )}
 
-            {/* Manual URL input */}
             <div>
               <label className="block text-sm font-medium text-slate-400 mb-1.5">Or paste image URL</label>
               <div className="space-y-2">
@@ -589,7 +642,7 @@ export default function AdminVenueFormPage() {
             </div>
           </div>
 
-          {/* Submit */}
+          {/* ── Submit ── */}
           <div className="flex gap-3 pb-8">
             <Link to="/admin" className="btn-secondary flex-1 text-center text-sm py-3.5">
               Cancel

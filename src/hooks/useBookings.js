@@ -68,39 +68,55 @@ const createBooking = async (bookingData) => {
 
   const { venue_name, venue_image, ...cleanData } = bookingData
 
-  // Step 1: Create the booking
-  const { data, error } = await supabase
-    .from('bookings')
-    .insert({
-      user_id: user.id,
-      ...cleanData,
-      status: 'confirmed',
-    })
-    .select()
-    .single()
+  // Only insert one booking record (first slot call)
+  // Check if booking already exists for this date/start_time/venue
+  const existing = bookings.find(b =>
+    b.venue_id === bookingData.venue_id &&
+    b.date === bookingData.date &&
+    b.start_time === bookingData.start_time &&
+    b.status === 'confirmed'
+  )
 
-  if (error) throw error
+  let bookingRecord = existing
 
-  // Step 2: Mark the slot as unavailable immediately
+  if (!existing) {
+    const { data, error } = await supabase
+      .from('bookings')
+      .insert({
+        user_id: user.id,
+        venue_id: cleanData.venue_id,
+        date: cleanData.date,
+        start_time: cleanData.start_time,
+        end_time: cleanData.end_time,
+        sport: cleanData.sport,
+        total_amount: cleanData.total_amount,
+        slot_id: cleanData.slot_id,
+        status: 'confirmed',
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    bookingRecord = data
+  }
+
+  // Mark slot as unavailable
   if (bookingData.slot_id) {
-    const { error: slotError } = await supabase
+    await supabase
       .from('time_slots')
       .update({ is_available: false })
       .eq('id', bookingData.slot_id)
-
-    if (slotError) {
-      console.error('Failed to mark slot unavailable:', slotError.message)
-    }
   }
 
-  // Step 3: Add to local state for instant UI update
-  setBookings(prev => [{
-    ...data,
-    venue_name: venue_name || 'Venue',
-    venue_image: venue_image || null,
-  }, ...prev])
+  if (!existing) {
+    setBookings(prev => [{
+      ...bookingRecord,
+      venue_name: venue_name || 'Venue',
+      venue_image: venue_image || null,
+    }, ...prev])
+  }
 
-  return data
+  return bookingRecord
 }
 
   const cancelBooking = async (bookingId) => {
