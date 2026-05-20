@@ -167,7 +167,7 @@ setBookings(bookingData || [])
             </p>
           </div>
           <Link
-            to={`/admin/venues/edit/${venue.id}`}
+            to={`/venue-owner/edit/${venue.id}`}
             className="btn-outline flex items-center gap-2 text-sm self-start"
           >
             <Edit size={15} /> Edit Venue Info

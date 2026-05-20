@@ -3,7 +3,6 @@ import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import Layout from './components/layout/Layout'
 import ProtectedRoute from './components/layout/ProtectedRoute'
-import VenueOwnerDashboard from './pages/VenueOwnerDashboard'
 
 // Pages
 import HomePage from './pages/HomePage'
@@ -19,6 +18,8 @@ import NotFoundPage from './pages/NotFoundPage'
 import AdminVenueFormPage from './pages/AdminVenueFormPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
+import VenueOwnerEditPage from './pages/VenueOwnerEditPage'
+import VenueOwnerDashboard from './pages/VenueOwnerDashboard'
 
 export default function App() {
   return (
@@ -67,6 +68,11 @@ export default function App() {
             <Route path="venue-dashboard" element={
               <ProtectedRoute venueOwnerOnly>
                 <VenueOwnerDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="venue-owner/edit/:id" element={
+              <ProtectedRoute venueOwnerOnly>
+                <VenueOwnerEditPage />
               </ProtectedRoute>
             } />
 
