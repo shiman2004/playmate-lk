@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { User, Phone, Mail, Save, Loader, AlertCircle, CheckCircle } from 'lucide-react'
+import { User, Phone, Mail, Save, Loader, CheckCircle, Eye, EyeOff, Lock } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
 export default function ProfilePage() {
@@ -10,6 +11,15 @@ export default function ProfilePage() {
   })
   const [loading, setLoading] = useState(false)
   const [saved, setSaved] = useState(false)
+
+  // Password change state
+  const [passwordForm, setPasswordForm] = useState({
+    newPassword: '', confirmPassword: ''
+  })
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [passwordLoading, setPasswordLoading] = useState(false)
+  const [passwordError, setPasswordError] = useState('')
 
   useEffect(() => {
     if (profile) {
@@ -27,6 +37,11 @@ export default function ProfilePage() {
     setSaved(false)
   }
 
+  const handlePasswordChange = e => {
+    setPasswordForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
+    setPasswordError('')
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
@@ -41,7 +56,45 @@ export default function ProfilePage() {
     }
   }
 
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault()
+    setPasswordError('')
+
+    if (passwordForm.newPassword.length < 8) {
+      setPasswordError('Password must be at least 8 characters')
+      return
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError('Passwords do not match')
+      return
+    }
+
+    setPasswordLoading(true)
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: passwordForm.newPassword
+      })
+      if (error) throw error
+      toast.success('Password changed successfully!')
+      setPasswordForm({ newPassword: '', confirmPassword: '' })
+    } catch (err) {
+      setPasswordError(err.message || 'Failed to change password')
+    } finally {
+      setPasswordLoading(false)
+    }
+  }
+
   const avatar = (profile?.full_name || user?.email)?.[0]?.toUpperCase()
+
+  // Password strength
+  const getPasswordStrength = (p) => {
+    if (!p) return null
+    if (p.length < 6) return { level: 1, label: 'Weak', color: 'bg-red-500' }
+    if (p.length < 8) return { level: 2, label: 'Fair', color: 'bg-yellow-500' }
+    if (p.length >= 8 && /[A-Z]/.test(p) && /[0-9]/.test(p)) return { level: 4, label: 'Strong', color: 'bg-primary-500' }
+    return { level: 3, label: 'Good', color: 'bg-blue-500' }
+  }
+  const strength = getPasswordStrength(passwordForm.newPassword)
 
   return (
     <div className="bg-dark-950 min-h-screen pt-16">
@@ -78,16 +131,17 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Form */}
-          <div className="md:col-span-2">
+          {/* Right column */}
+          <div className="md:col-span-2 space-y-5">
+            {/* Personal Info Form */}
             <div className="card">
-              <h2 className="text-white font-heading font-semibold text-xl mb-5">Personal Information</h2>
+              <h2 className="text-white font-heading font-semibold text-xl mb-5">
+                Personal Information
+              </h2>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-1.5">
-                    Full Name
-                  </label>
+                  <label className="block text-sm font-medium text-slate-400 mb-1.5">Full Name</label>
                   <div className="relative">
                     <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                     <input
@@ -102,9 +156,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-1.5">
-                    Email Address
-                  </label>
+                  <label className="block text-sm font-medium text-slate-400 mb-1.5">Email Address</label>
                   <div className="relative">
                     <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                     <input
@@ -118,9 +170,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-1.5">
-                    Phone Number
-                  </label>
+                  <label className="block text-sm font-medium text-slate-400 mb-1.5">Phone Number</label>
                   <div className="relative">
                     <Phone size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                     <input
@@ -136,12 +186,7 @@ export default function ProfilePage() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-400 mb-1.5">City</label>
-                  <select
-                    name="city"
-                    value={formData.city}
-                    onChange={handleChange}
-                    className="input"
-                  >
+                  <select name="city" value={formData.city} onChange={handleChange} className="input">
                     <option value="" className="bg-dark-900">Select your city</option>
                     {['Colombo', 'Nugegoda', 'Kandy', 'Galle', 'Kelaniya', 'Negombo', 'Matara', 'Jaffna', 'Kurunegala', 'Ratnapura'].map(c => (
                       <option key={c} value={c} className="bg-dark-900">{c}</option>
@@ -177,16 +222,103 @@ export default function ProfilePage() {
               </form>
             </div>
 
-            {/* Security section */}
-            <div className="card mt-4">
-              <h2 className="text-white font-heading font-semibold text-xl mb-4">Security</h2>
-              <div className="flex items-center justify-between p-4 rounded-xl bg-dark-800 border border-white/5">
+            {/* Change Password */}
+            <div className="card">
+              <h2 className="text-white font-heading font-semibold text-xl mb-5">
+                Change Password
+              </h2>
+
+              <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                {/* New Password */}
                 <div>
-                  <p className="text-white text-sm font-semibold">Password</p>
-                  <p className="text-slate-500 text-xs mt-0.5">Last changed: Recently</p>
+                  <label className="block text-sm font-medium text-slate-400 mb-1.5">
+                    New Password
+                  </label>
+                  <div className="relative">
+                    <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                    <input
+                      type={showNewPassword ? 'text' : 'password'}
+                      name="newPassword"
+                      value={passwordForm.newPassword}
+                      onChange={handlePasswordChange}
+                      placeholder="Min. 8 characters"
+                      className="input pl-9 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                    >
+                      {showNewPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+
+                  {/* Strength bar */}
+                  {strength && (
+                    <div className="mt-2">
+                      <div className="flex gap-1 mb-1">
+                        {[1,2,3,4].map(i => (
+                          <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i <= strength.level ? strength.color : 'bg-dark-700'}`} />
+                        ))}
+                      </div>
+                      <p className="text-xs text-slate-500">{strength.label} password</p>
+                    </div>
+                  )}
                 </div>
-                <button className="btn-outline text-xs py-2 px-4">Change</button>
-              </div>
+
+                {/* Confirm Password */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1.5">
+                    Confirm New Password
+                  </label>
+                  <div className="relative">
+                    <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      name="confirmPassword"
+                      value={passwordForm.confirmPassword}
+                      onChange={handlePasswordChange}
+                      placeholder="Repeat new password"
+                      className="input pl-9 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                    >
+                      {showConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                  {passwordForm.confirmPassword && (
+                    <p className={`text-xs mt-1 ${passwordForm.newPassword === passwordForm.confirmPassword ? 'text-primary-400' : 'text-red-400'}`}>
+                      {passwordForm.newPassword === passwordForm.confirmPassword ? '✓ Passwords match' : '✗ Passwords do not match'}
+                    </p>
+                  )}
+                </div>
+
+                {/* Error */}
+                {passwordError && (
+                  <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                    {passwordError}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={passwordLoading || !passwordForm.newPassword || !passwordForm.confirmPassword}
+                  className={`w-full py-3.5 flex items-center justify-center gap-2 font-semibold rounded-xl transition-all ${
+                    passwordLoading || !passwordForm.newPassword || !passwordForm.confirmPassword
+                      ? 'bg-dark-700 text-slate-600 cursor-not-allowed'
+                      : 'btn-primary'
+                  }`}
+                >
+                  {passwordLoading ? (
+                    <><Loader size={16} className="animate-spin" /> Updating Password...</>
+                  ) : (
+                    <><Lock size={16} /> Change Password</>
+                  )}
+                </button>
+              </form>
             </div>
           </div>
         </div>

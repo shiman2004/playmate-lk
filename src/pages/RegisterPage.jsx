@@ -4,6 +4,7 @@ import { Eye, EyeOff, UserPlus, Loader, AlertCircle, CheckCircle } from 'lucide-
 import { useAuth } from '../context/AuthContext'
 import { isSupabaseConfigured } from '../lib/supabase'
 import toast from 'react-hot-toast'
+import { supabase } from '../lib/supabase'
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -13,8 +14,6 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
-
-  const { signUp } = useAuth()
   const navigate = useNavigate()
 
   const handleChange = e => {
@@ -33,23 +32,71 @@ export default function RegisterPage() {
     return null
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    const validationError = validate()
-    if (validationError) { setError(validationError); return }
+const handleSubmit = async (e) => {
+  e.preventDefault()
+  const validationError = validate()
+  if (validationError) { setError(validationError); return }
 
-    setLoading(true)
-    setError('')
-    try {
-      await signUp(formData)
-      setSuccess(true)
-      toast.success('Account created! Check your email to verify.')
-    } catch (err) {
-      setError(err.message || 'Registration failed. Please try again.')
-    } finally {
+  setLoading(true)
+  setError('')
+  try {
+    //  Check if phone already exists
+    const cleanPhone = formData.phone.replace(/\s/g, '')
+    const { data: existingPhone } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('phone', cleanPhone)
+      .single()
+
+    if (existingPhone) {
+      setError(`Phone number ${formData.phone} is already registered. Please use a different number.`)
       setLoading(false)
+      return
     }
+
+    //  Try to sign up — Supabase will block duplicate emails automatically
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email: formData.email,
+      password: formData.password,
+      options: {
+        data: {
+          full_name: formData.fullName,
+          phone: cleanPhone,
+        }
+      }
+    })
+
+    if (signUpError) {
+      //  Handle duplicate email error nicely
+      if (signUpError.message.toLowerCase().includes('already registered') ||
+          signUpError.message.toLowerCase().includes('already been registered') ||
+          signUpError.message.toLowerCase().includes('user already exists')) {
+        setError(`Email ${formData.email} is already registered. Please log in instead.`)
+      } else {
+        setError(signUpError.message)
+      }
+      return
+    }
+
+    //  Also save phone to profile immediately
+    if (data?.user) {
+      await supabase
+        .from('profiles')
+        .upsert({
+          id: data.user.id,
+          full_name: formData.fullName,
+          phone: cleanPhone,
+        })
+    }
+
+    setSuccess(true)
+    toast.success('Account created! Check your email to verify.')
+  } catch (err) {
+    setError(err.message || 'Registration failed. Please try again.')
+  } finally {
+    setLoading(false)
   }
+}
 
   const passwordStrength = () => {
     const p = formData.password
