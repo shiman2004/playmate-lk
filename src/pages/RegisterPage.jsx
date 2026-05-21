@@ -53,30 +53,8 @@ export default function RegisterPage() {
         return
       }
 
-      // ✅ Step 2 — Check if email already exists
-      // We attempt a dummy sign-in — the error type tells us if email exists
-      const { error: checkError } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: 'playmate_check_dummy_xyz_789!@#',
-      })
-
-      if (checkError) {
-        const msg = checkError.message.toLowerCase()
-        if (
-          msg.includes('invalid login credentials') ||
-          msg.includes('invalid credentials') ||
-          msg.includes('email not confirmed') ||
-          msg.includes('email logins are disabled')
-        ) {
-          // These errors only occur when the email IS registered
-          setError(`Email ${formData.email} is already registered. Please log in instead.`)
-          setLoading(false)
-          return
-        }
-        // Any other error = email does not exist, safe to proceed
-      }
-
-      // ✅ Step 3 — Register the new user
+      // ✅ Step 2 — Attempt signup
+      // Supabase returns identities = [] when email already exists
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -93,7 +71,18 @@ export default function RegisterPage() {
         return
       }
 
-      // ✅ Step 4 — Save phone to profile immediately
+      // ✅ Step 3 — Check if email already existed
+      // Supabase returns user with empty identities array for duplicate emails
+      if (
+        data?.user &&
+        Array.isArray(data.user.identities) &&
+        data.user.identities.length === 0
+      ) {
+        setError(`Email ${formData.email} is already registered. Please log in instead.`)
+        return
+      }
+
+      // ✅ Step 4 — Save phone to profile
       if (data?.user) {
         await supabase
           .from('profiles')
