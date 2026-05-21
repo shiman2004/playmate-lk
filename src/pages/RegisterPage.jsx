@@ -1,10 +1,8 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Eye, EyeOff, UserPlus, Loader, AlertCircle, CheckCircle } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
-import { isSupabaseConfigured } from '../lib/supabase'
+import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import toast from 'react-hot-toast'
-import { supabase } from '../lib/supabase'
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -14,7 +12,6 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
-  const navigate = useNavigate()
 
   const handleChange = e => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
@@ -32,71 +29,89 @@ export default function RegisterPage() {
     return null
   }
 
-const handleSubmit = async (e) => {
-  e.preventDefault()
-  const validationError = validate()
-  if (validationError) { setError(validationError); return }
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    const validationError = validate()
+    if (validationError) { setError(validationError); return }
 
-  setLoading(true)
-  setError('')
-  try {
-    //  Check if phone already exists
-    const cleanPhone = formData.phone.replace(/\s/g, '')
-    const { data: existingPhone } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('phone', cleanPhone)
-      .single()
+    setLoading(true)
+    setError('')
 
-    if (existingPhone) {
-      setError(`Phone number ${formData.phone} is already registered. Please use a different number.`)
-      setLoading(false)
-      return
-    }
+    try {
+      const cleanPhone = formData.phone.replace(/\s/g, '')
 
-    //  Try to sign up — Supabase will block duplicate emails automatically
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email: formData.email,
-      password: formData.password,
-      options: {
-        data: {
-          full_name: formData.fullName,
-          phone: cleanPhone,
-        }
-      }
-    })
-
-    if (signUpError) {
-      //  Handle duplicate email error nicely
-      if (signUpError.message.toLowerCase().includes('already registered') ||
-          signUpError.message.toLowerCase().includes('already been registered') ||
-          signUpError.message.toLowerCase().includes('user already exists')) {
-        setError(`Email ${formData.email} is already registered. Please log in instead.`)
-      } else {
-        setError(signUpError.message)
-      }
-      return
-    }
-
-    //  Also save phone to profile immediately
-    if (data?.user) {
-      await supabase
+      // ✅ Step 1 — Check if phone already exists
+      const { data: existingPhone } = await supabase
         .from('profiles')
-        .upsert({
-          id: data.user.id,
-          full_name: formData.fullName,
-          phone: cleanPhone,
-        })
-    }
+        .select('id')
+        .eq('phone', cleanPhone)
+        .maybeSingle()
 
-    setSuccess(true)
-    toast.success('Account created! Check your email to verify.')
-  } catch (err) {
-    setError(err.message || 'Registration failed. Please try again.')
-  } finally {
-    setLoading(false)
+      if (existingPhone) {
+        setError(`Phone number ${formData.phone} is already registered. Please use a different number.`)
+        setLoading(false)
+        return
+      }
+
+      // ✅ Step 2 — Check if email already exists
+      // We attempt a dummy sign-in — the error type tells us if email exists
+      const { error: checkError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: 'playmate_check_dummy_xyz_789!@#',
+      })
+
+      if (checkError) {
+        const msg = checkError.message.toLowerCase()
+        if (
+          msg.includes('invalid login credentials') ||
+          msg.includes('invalid credentials') ||
+          msg.includes('email not confirmed') ||
+          msg.includes('email logins are disabled')
+        ) {
+          // These errors only occur when the email IS registered
+          setError(`Email ${formData.email} is already registered. Please log in instead.`)
+          setLoading(false)
+          return
+        }
+        // Any other error = email does not exist, safe to proceed
+      }
+
+      // ✅ Step 3 — Register the new user
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+            phone: cleanPhone,
+          }
+        }
+      })
+
+      if (signUpError) {
+        setError(signUpError.message)
+        return
+      }
+
+      // ✅ Step 4 — Save phone to profile immediately
+      if (data?.user) {
+        await supabase
+          .from('profiles')
+          .upsert({
+            id: data.user.id,
+            full_name: formData.fullName,
+            phone: cleanPhone,
+          })
+      }
+
+      setSuccess(true)
+      toast.success('Account created! Check your email to verify.')
+    } catch (err) {
+      setError(err.message || 'Registration failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
-}
 
   const passwordStrength = () => {
     const p = formData.password
@@ -109,6 +124,7 @@ const handleSubmit = async (e) => {
 
   const strength = passwordStrength()
 
+  // ── Success screen ──
   if (success) {
     return (
       <div className="min-h-screen bg-dark-950 flex items-center justify-center p-4">
@@ -119,7 +135,8 @@ const handleSubmit = async (e) => {
             </div>
             <h2 className="text-white font-heading font-bold text-2xl mb-2">Account Created!</h2>
             <p className="text-slate-400 text-sm mb-6">
-              We've sent a verification email to <strong className="text-white">{formData.email}</strong>.
+              We've sent a verification email to{' '}
+              <strong className="text-white">{formData.email}</strong>.
               Please verify your email before logging in.
             </p>
             <Link to="/login" className="btn-primary w-full block text-center py-3">
@@ -139,6 +156,7 @@ const handleSubmit = async (e) => {
       </div>
 
       <div className="w-full max-w-md relative z-10 py-8">
+        {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 mb-6">
             <div className="w-9 h-9 bg-primary-500 rounded-xl flex items-center justify-center">
@@ -229,7 +247,12 @@ const handleSubmit = async (e) => {
                 <div className="mt-2">
                   <div className="flex gap-1 mb-1">
                     {[1,2,3,4].map(i => (
-                      <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i <= strength.level ? strength.color : 'bg-dark-700'}`} />
+                      <div
+                        key={i}
+                        className={`h-1 flex-1 rounded-full transition-all ${
+                          i <= strength.level ? strength.color : 'bg-dark-700'
+                        }`}
+                      />
                     ))}
                   </div>
                   <p className="text-xs text-slate-500">{strength.label} password</p>
@@ -260,10 +283,11 @@ const handleSubmit = async (e) => {
               </div>
             </div>
 
+            {/* Error message */}
             {error && (
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                <AlertCircle size={15} className="shrink-0" />
-                {error}
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                <AlertCircle size={15} className="shrink-0 mt-0.5" />
+                <span>{error}</span>
               </div>
             )}
 
@@ -280,7 +304,7 @@ const handleSubmit = async (e) => {
               className="btn-primary w-full py-3.5 flex items-center justify-center gap-2"
             >
               {loading ? (
-                <><Loader size={16} className="animate-spin" /> Creating Account...</>
+                <><Loader size={16} className="animate-spin" /> Checking &amp; Creating...</>
               ) : (
                 <><UserPlus size={16} /> Create Account</>
               )}
