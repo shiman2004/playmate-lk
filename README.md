@@ -1,4 +1,4 @@
-# 🏟️ Sportive.lk — Setup Guide
+# 🏟️ Sportiva.lk — Setup Guide
 
 > Sri Lanka's #1 Indoor Sports Venue Booking Platform
 
@@ -19,7 +19,7 @@
 
 ```bash
 # Navigate to the project folder
-cd sportive-lk
+cd sportiva-lk
 
 # Install all dependencies
 npm install
@@ -36,7 +36,7 @@ Open `.env` and fill in your Supabase credentials:
 ```env
 VITE_SUPABASE_URL=https://your-project-id.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key-here
-VITE_APP_NAME=Sportive.lk
+VITE_APP_NAME=Sportiva.lk
 ```
 
 ### Step 3 — Set Up Supabase Database
@@ -88,10 +88,10 @@ Add environment variables in Vercel dashboard:
 
 ## 📞 Support
 
-- **Email**: hello@sportive.lk
+- **Email**: hello@sportiva.lk
 - **Built with** React + Vite + Supabase + Tailwind CSS
 - **Made in Sri Lanka** 🇱🇰
 
 ---
 
-*Sportive.lk — Book. Play. Repeat.*
+*Sportiva.lk — Book. Play. Repeat.*

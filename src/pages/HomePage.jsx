@@ -309,7 +309,7 @@ export default function HomePage() {
                 READY TO PLAY?
               </h2>
               <p className="text-primary-100 text-lg max-w-xl mx-auto mb-8">
-                Join thousands of players booking their favourite courts on Sportive.lk
+                Join thousands of players booking their favourite courts on Sportiva.lk
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link to="/register" className="bg-white text-primary-700 font-bold px-8 py-4 rounded-xl hover:bg-primary-50 transition-all shadow-xl hover:shadow-white/20 active:scale-95">

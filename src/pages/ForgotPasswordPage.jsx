@@ -43,7 +43,7 @@ export default function ForgotPasswordPage() {
         </div>
             <span className="font-display text-3xl tracking-wide">
             <span className="text-white">SPOR</span>
-            <span className="text-primary-400">TIVE</span>
+            <span className="text-primary-400">TIVA</span>
             <span className="text-white">.LK</span>
             </span>
           </Link>

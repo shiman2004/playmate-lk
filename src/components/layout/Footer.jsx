@@ -95,8 +95,8 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-3">
                 <Mail size={15} className="text-primary-500 shrink-0" />
-                <a href="mailto:hello@sportive.lk" className="text-slate-500 hover:text-primary-400 text-sm transition-colors">
-                  hello@sportive.lk
+                <a href="mailto:hello@sportiva.lk" className="text-slate-500 hover:text-primary-400 text-sm transition-colors">
+                  hello@sportiva.lk
                 </a>
               </li>
             </ul>
@@ -113,7 +113,7 @@ export default function Footer() {
       <div className="border-t border-white/5">
         <div className="container-custom py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-slate-600 text-sm">
-            © {new Date().getFullYear()} Sportive.lk. All rights reserved.
+            © {new Date().getFullYear()} Sportiva.lk. All rights reserved.
           </p>
           <div className="flex items-center gap-1 text-slate-600 text-sm">
             <span>Made with</span>

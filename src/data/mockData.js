@@ -185,7 +185,7 @@ export const mockTestimonials = [
     role: 'Futsal Team Captain',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Dilshan',
     rating: 5,
-    text: 'Sportive.lk has completely changed how our team organizes matches. Booking is instant, no more back-and-forth calls. The Arena Pro courts are absolutely top-notch!',
+    text: 'Sportiva.lk has completely changed how our team organizes matches. Booking is instant, no more back-and-forth calls. The Arena Pro courts are absolutely top-notch!',
     venue: 'Arena Pro Futsal Complex',
   },
   {

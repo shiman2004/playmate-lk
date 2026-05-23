@@ -18,7 +18,7 @@ export default function AboutPage() {
             ABOUT <span className="text-gradient">US</span>
           </h1>
           <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
-            Sportive.lk was born from a simple frustration — booking a sports court in Sri Lanka
+            Sportiva.lk was born from a simple frustration — booking a sports court in Sri Lanka
             shouldn't require 5 phone calls and two days of waiting. So we built something better.
           </p>
         </div>
@@ -107,7 +107,7 @@ export default function AboutPage() {
             JOIN THE <span className="text-gradient">GAME</span>
           </h2>
           <p className="text-slate-500 text-sm mb-8">
-            Be part of Sri Lanka's fastest growing sports community on Sportive.lk
+            Be part of Sri Lanka's fastest growing sports community on Sportiva.lk
           </p>
           <div className="flex gap-3 justify-center flex-wrap">
             <Link to="/register" className="btn-primary">Create Free Account</Link>
