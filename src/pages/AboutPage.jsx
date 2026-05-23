@@ -18,7 +18,7 @@ export default function AboutPage() {
             ABOUT <span className="text-gradient">US</span>
           </h1>
           <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
-            PlayMate.lk was born from a simple frustration — booking a sports court in Sri Lanka
+            Sportive.lk was born from a simple frustration — booking a sports court in Sri Lanka
             shouldn't require 5 phone calls and two days of waiting. So we built something better.
           </p>
         </div>
@@ -103,8 +103,12 @@ export default function AboutPage() {
       {/* CTA */}
       <section className="section">
         <div className="container-custom text-center">
-          <h2 className="font-display text-5xl text-white mb-4">JOIN THE <span className="text-gradient">GAME</span></h2>
-          <p className="text-slate-500 text-sm mb-8">Be part of Sri Lanka's fastest growing sports community.</p>
+          <h2 className="font-display text-5xl text-white mb-4">
+            JOIN THE <span className="text-gradient">GAME</span>
+          </h2>
+          <p className="text-slate-500 text-sm mb-8">
+            Be part of Sri Lanka's fastest growing sports community on Sportive.lk
+          </p>
           <div className="flex gap-3 justify-center flex-wrap">
             <Link to="/register" className="btn-primary">Create Free Account</Link>
             <Link to="/venues" className="btn-secondary">Explore Venues</Link>

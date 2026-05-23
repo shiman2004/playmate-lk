@@ -4,23 +4,22 @@ import { MapPin, Phone, Mail, Instagram, Facebook, Twitter, Youtube } from 'luci
 export default function Footer() {
   return (
     <footer className="bg-dark-950 border-t border-white/5">
-      {/* Main footer */}
       <div className="container-custom py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
-                <span className="text-black font-display text-lg leading-none">P</span>
+                <span className="text-black font-display text-lg leading-none">S</span>
               </div>
               <span className="font-display text-2xl tracking-wide">
-                <span className="text-white">PLAY</span>
-                <span className="text-primary-400">MATE</span>
+                <span className="text-white">SPOR</span>
+                <span className="text-primary-400">TIVE</span>
                 <span className="text-white">.LK</span>
               </span>
             </Link>
             <p className="text-slate-500 text-sm leading-relaxed mb-5">
-              Sri Lanka's #1 indoor sports venue booking platform. Find and book your favourite 
+              Sri Lanka's #1 indoor sports venue booking platform. Find and book your favourite
               court in seconds.
             </p>
             <div className="flex gap-3">
@@ -96,8 +95,8 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-3">
                 <Mail size={15} className="text-primary-500 shrink-0" />
-                <a href="mailto:hello@playmate.lk" className="text-slate-500 hover:text-primary-400 text-sm transition-colors">
-                  hello@playmate.lk
+                <a href="mailto:hello@sportive.lk" className="text-slate-500 hover:text-primary-400 text-sm transition-colors">
+                  hello@sportive.lk
                 </a>
               </li>
             </ul>
@@ -114,7 +113,7 @@ export default function Footer() {
       <div className="border-t border-white/5">
         <div className="container-custom py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-slate-600 text-sm">
-            © {new Date().getFullYear()} PlayMate.lk. All rights reserved.
+            © {new Date().getFullYear()} Sportive.lk. All rights reserved.
           </p>
           <div className="flex items-center gap-1 text-slate-600 text-sm">
             <span>Made with</span>

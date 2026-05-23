@@ -149,11 +149,11 @@ export default function RegisterPage() {
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 mb-6">
             <div className="w-9 h-9 bg-primary-500 rounded-xl flex items-center justify-center">
-              <span className="text-black font-display text-xl leading-none">P</span>
+              <span className="text-black font-display text-xl leading-none">S</span>
             </div>
             <span className="font-display text-3xl tracking-wide">
-              <span className="text-white">PLAY</span>
-              <span className="text-primary-400">MATE</span>
+              <span className="text-white">SPOR</span>
+              <span className="text-primary-400">TIVE</span>
               <span className="text-white">.LK</span>
             </span>
           </Link>

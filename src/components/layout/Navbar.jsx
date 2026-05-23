@@ -46,11 +46,11 @@ export default function Navbar() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
             <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center shadow-lg shadow-primary-500/30 group-hover:shadow-primary-500/50 transition-all duration-200">
-              <span className="text-black font-display text-lg leading-none">P</span>
+              <span className="text-black font-display text-lg leading-none">S</span>
             </div>
             <span className="font-display text-2xl tracking-wide">
-              <span className="text-white">PLAY</span>
-              <span className="text-primary-400">MATE</span>
+              <span className="text-white">SPOR</span>
+              <span className="text-primary-400">TIVE</span>
               <span className="text-white">.LK</span>
             </span>
           </Link>
