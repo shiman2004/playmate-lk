@@ -2,16 +2,16 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Building2, Calendar, TrendingUp, Clock, CheckCircle,
-  XCircle, Users, Edit, ToggleLeft, ToggleRight
+  XCircle, Users, Edit
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
-import { format, isBefore, subHours, parseISO } from 'date-fns'
+import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 
 export default function VenueOwnerDashboard() {
-  const { user, profile, ownedVenueId } = useAuth()
+  const { ownedVenueId } = useAuth()
   const [venue, setVenue] = useState(null)
   const [bookings, setBookings] = useState([])
   const [slots, setSlots] = useState([])
@@ -20,33 +20,28 @@ export default function VenueOwnerDashboard() {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'))
 
   useEffect(() => {
-    if (ownedVenueId) {
-      fetchAll()
-    }
+    if (ownedVenueId) fetchAll()
   }, [ownedVenueId])
 
   const fetchAll = async () => {
     setLoading(true)
     try {
-      // Fetch venue
-      const { data: venueData } = await supabase
+      const { data: venueData, error: venueError } = await supabase
         .from('venues')
         .select('*')
         .eq('id', ownedVenueId)
         .single()
+
+      if (venueError) throw venueError
       setVenue(venueData)
 
-      // Fetch bookings with user profiles
-      // Fetch bookings
-const { data: bookingData, error: bookingError } = await supabase
-  .from('bookings')
-  .select('*')
-  .eq('venue_id', ownedVenueId)
-  .order('created_at', { ascending: false })
+      const { data: bookingData, error: bookingError } = await supabase
+        .from('bookings_with_details')
+        .select('*')
+        .eq('venue_id', ownedVenueId)
+        .order('created_at', { ascending: false })
 
-if (bookingError) throw bookingError
-setBookings(bookingData || [])
-
+      if (bookingError) throw bookingError
       setBookings(bookingData || [])
     } catch (err) {
       toast.error('Failed to load data')
@@ -62,6 +57,7 @@ setBookings(bookingData || [])
       .eq('venue_id', ownedVenueId)
       .eq('date', date)
       .order('start_time')
+
     setSlots(data || [])
   }
 
@@ -72,34 +68,34 @@ setBookings(bookingData || [])
   }, [selectedDate, activeTab, ownedVenueId])
 
   const handleCancelBooking = async (bookingId) => {
-  if (!confirm('Cancel this booking? The slot will become available again.')) return
-  try {
-    const booking = bookings.find(b => b.id === bookingId)
+    if (!confirm('Cancel this booking? The slot will become available again.')) return
 
-    // ✅ Cancel the booking
-    const { error } = await supabase
-      .from('bookings')
-      .update({ status: 'cancelled' })
-      .eq('id', bookingId)
-    if (error) throw error
+    try {
+      const booking = bookings.find(b => b.id === bookingId)
 
-    // ✅ Free ALL slots in the booking time range
-    if (booking) {
-      await supabase
-        .from('time_slots')
-        .update({ is_available: true })
-        .eq('venue_id', booking.venue_id)
-        .eq('date', booking.date)
-        .gte('start_time', booking.start_time)
-        .lt('start_time', booking.end_time)
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: 'cancelled' })
+        .eq('id', bookingId)
+
+      if (error) throw error
+
+      if (booking) {
+        await supabase
+          .from('time_slots')
+          .update({ is_available: true })
+          .eq('venue_id', booking.venue_id)
+          .eq('date', booking.date)
+          .gte('start_time', booking.start_time)
+          .lt('start_time', booking.end_time)
+      }
+
+      toast.success('Booking cancelled — slot is now available')
+      fetchAll()
+    } catch (err) {
+      toast.error('Failed to cancel: ' + err.message)
     }
-
-    toast.success('Booking cancelled — slot is now available')
-    fetchAll()
-  } catch (err) {
-    toast.error('Failed to cancel: ' + err.message)
   }
-}
 
   const handleToggleSlot = async (slot) => {
     try {
@@ -107,17 +103,14 @@ setBookings(bookingData || [])
         .from('time_slots')
         .update({ is_available: !slot.is_available })
         .eq('id', slot.id)
+
       if (error) throw error
+
       toast.success(slot.is_available ? 'Slot blocked' : 'Slot unblocked')
       fetchSlots(selectedDate)
     } catch (err) {
       toast.error('Failed to update slot')
     }
-  }
-
-  const canCancelBooking = (booking) => {
-    const bookingTime = parseISO(`${booking.date}T${booking.start_time}`)
-    return isBefore(new Date(), subHours(bookingTime, 24))
   }
 
   if (loading) return (
@@ -196,10 +189,9 @@ setBookings(bookingData || [])
           ))}
         </div>
 
-        {/* ── OVERVIEW TAB ── */}
+        {/* Overview */}
         {activeTab === 'overview' && (
           <div className="space-y-6 animate-fade-in">
-            {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
                 { label: 'Total Bookings', value: bookings.length, icon: Calendar, color: 'text-primary-400', bg: 'bg-primary-500/10' },
@@ -217,12 +209,10 @@ setBookings(bookingData || [])
               ))}
             </div>
 
-            {/* Venue Info Card */}
             <div className="card">
               <div className="flex items-start gap-4">
                 {venue.images?.[0] && (
-                  <img src={venue.images[0]} alt={venue.name}
-                    className="w-24 h-24 rounded-xl object-cover shrink-0" />
+                  <img src={venue.images[0]} alt={venue.name} className="w-24 h-24 rounded-xl object-cover shrink-0" />
                 )}
                 <div className="flex-1 min-w-0">
                   <h2 className="text-white font-heading font-bold text-2xl">{venue.name}</h2>
@@ -235,6 +225,7 @@ setBookings(bookingData || [])
                       {venue.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </div>
+
                   <div className="grid grid-cols-2 gap-3 mt-4">
                     <div>
                       <p className="text-slate-500 text-xs">Day Rate</p>
@@ -259,25 +250,28 @@ setBookings(bookingData || [])
               </div>
             </div>
 
-            {/* Recent bookings preview */}
             <div className="card">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-white font-heading font-semibold text-lg">Recent Bookings</h3>
-                <button onClick={() => setActiveTab('bookings')}
-                  className="text-primary-400 text-xs hover:text-primary-300">
+                <button onClick={() => setActiveTab('bookings')} className="text-primary-400 text-xs hover:text-primary-300">
                   View all →
                 </button>
               </div>
+
               {bookings.slice(0, 5).map(b => (
                 <div key={b.id} className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
                   <div>
                     <p className="text-white text-sm font-semibold">
-                      {b.profiles?.full_name || 'Customer'}
+                      {b.customer_name || 'Customer'}
                     </p>
+                    {b.customer_phone && (
+                      <p className="text-slate-500 text-xs">📱 {b.customer_phone}</p>
+                    )}
                     <p className="text-slate-500 text-xs">
                       {b.date} • {b.start_time} – {b.end_time}
                     </p>
                   </div>
+
                   <div className="text-right">
                     <p className="text-primary-400 font-semibold text-sm">
                       Rs {b.total_amount?.toLocaleString()}
@@ -286,6 +280,7 @@ setBookings(bookingData || [])
                   </div>
                 </div>
               ))}
+
               {bookings.length === 0 && (
                 <p className="text-slate-500 text-sm text-center py-4">No bookings yet</p>
               )}
@@ -293,81 +288,110 @@ setBookings(bookingData || [])
           </div>
         )}
 
-        {/* ── BOOKINGS TAB ── */}
+        {/* Bookings */}
         {activeTab === 'bookings' && (
-          <div className="space-y-4 animate-fade-in">
-            <h2 className="text-white font-heading font-semibold text-xl">
-              All Bookings ({bookings.length})
-            </h2>
-            <div className="space-y-3">
-              {bookings.map(b => {
-  // ✅ Venue owner can cancel ANY confirmed booking — no time restriction
-  const canCancel = b.status === 'confirmed'
+          <div className="space-y-5 animate-fade-in">
+            <div>
+              <h1 className="font-display text-4xl text-white">BOOKINGS</h1>
+              <p className="text-slate-500 text-sm mt-0.5">{bookings.length} bookings total</p>
+            </div>
 
-  return (
-    <div key={b.id} className="card flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <p className="text-white font-semibold">
-            {b.profiles?.full_name || 'Customer'}
-          </p>
-          <span className={STATUS_COLORS[b.status]}>{b.status}</span>
-        </div>
-        {b.profiles?.phone && (
-          <p className="text-slate-500 text-xs mb-1">📱 {b.profiles.phone}</p>
-        )}
-        <div className="flex flex-wrap gap-3 text-xs text-slate-500">
-          <span>📅 {b.date}</span>
-          <span>🕐 {b.start_time} – {b.end_time}</span>
-          <span>🏃 {b.sport}</span>
-          <span className="text-primary-400 font-semibold">
-            Rs {b.total_amount?.toLocaleString()}
-          </span>
-        </div>
-      </div>
+            <div className="card p-0 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-dark-800/50 border-b border-white/5">
+                    <tr>
+                      {['Booking ID', 'Customer', 'Venue', 'Date & Time', 'Amount', 'Status', 'Actions'].map(h => (
+                        <th key={h} className="text-left text-slate-500 text-xs font-semibold px-5 py-3.5">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
 
-      <div className="shrink-0">
-        {canCancel && (
-          <button
-            onClick={() => handleCancelBooking(b.id)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 text-xs font-semibold transition-all"
-          >
-            <XCircle size={13} /> Cancel Booking
-          </button>
-        )}
-        {b.status === 'cancelled' && (
-          <div className="flex items-center gap-1 text-slate-600 text-xs">
-            <XCircle size={12} /> Cancelled
-          </div>
-        )}
-        {b.status === 'completed' && (
-          <div className="flex items-center gap-1 text-slate-600 text-xs">
-            <CheckCircle size={12} /> Completed
-          </div>
-        )}
-      </div>
-    </div>
-  )
-})}
-              {bookings.length === 0 && (
-                <div className="card text-center py-12">
-                  <div className="text-4xl mb-3">📅</div>
-                  <p className="text-white font-semibold">No bookings yet</p>
-                  <p className="text-slate-500 text-sm mt-1">Bookings will appear here</p>
-                </div>
-              )}
+                  <tbody className="divide-y divide-white/5">
+                    {bookings.map(b => {
+                      const canCancel = b.status === 'confirmed'
+
+                      return (
+                        <tr key={b.id} className="hover:bg-white/2 transition-colors group">
+                          <td className="px-5 py-4 text-slate-500 font-mono text-xs">
+                            #{b.id?.slice(0, 8)}
+                          </td>
+
+                          <td className="px-5 py-4">
+                            <p className="text-white font-medium">
+                              {b.customer_name || 'Customer'}
+                            </p>
+                            {b.customer_phone && (
+                              <p className="text-slate-500 text-xs">
+                                📱 {b.customer_phone}
+                              </p>
+                            )}
+                          </td>
+
+                          <td className="px-5 py-4 text-slate-400">
+                            {b.venue_name_detail || b.venue_name || venue?.name || 'Venue'}
+                          </td>
+
+                          <td className="px-5 py-4">
+                            <p className="text-slate-300 text-sm">{b.date}</p>
+                            <p className="text-slate-500 text-xs">
+                              {b.start_time} – {b.end_time}
+                            </p>
+                          </td>
+
+                          <td className="px-5 py-4 text-primary-400 font-semibold">
+                            Rs {b.total_amount?.toLocaleString()}
+                          </td>
+
+                          <td className="px-5 py-4">
+                            <span className={STATUS_COLORS[b.status]}>
+                              {b.status}
+                            </span>
+                          </td>
+
+                          <td className="px-5 py-4">
+                            {canCancel && (
+                              <button
+                                onClick={() => handleCancelBooking(b.id)}
+                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 text-xs transition-all opacity-0 group-hover:opacity-100"
+                              >
+                                <XCircle size={12} /> Cancel
+                              </button>
+                            )}
+
+                            {b.status === 'cancelled' && (
+                              <span className="text-slate-600 text-xs">Cancelled</span>
+                            )}
+
+                            {b.status === 'completed' && (
+                              <span className="text-slate-600 text-xs">Completed</span>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })}
+
+                    {bookings.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="py-8 text-center text-slate-500 text-sm">
+                          No bookings yet
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
 
-        {/* ── TIME SLOTS TAB ── */}
+        {/* Time Slots */}
         {activeTab === 'slots' && (
           <div className="space-y-4 animate-fade-in">
             <div className="flex items-center justify-between">
               <h2 className="text-white font-heading font-semibold text-xl">Manage Time Slots</h2>
             </div>
 
-            {/* Date picker */}
             <div>
               <label className="block text-sm font-medium text-slate-400 mb-2">Select Date</label>
               <input
@@ -420,6 +444,7 @@ setBookings(bookingData || [])
             </div>
           </div>
         )}
+
       </div>
     </div>
   )
