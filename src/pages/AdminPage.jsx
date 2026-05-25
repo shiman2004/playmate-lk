@@ -31,6 +31,7 @@ const ROLE_COLORS = {
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('overview')
   const [venueSearch, setVenueSearch] = useState('')
+  const [userSearch, setUserSearch] = useState('')
   const [venues, setVenues] = useState([])
   const [loadingVenues, setLoadingVenues] = useState(true)
   const [users, setUsers] = useState([])
@@ -145,11 +146,9 @@ export default function AdminPage() {
     setAssignModal(user)
   }
 
-  // ── FIXED: use service role bypass via RPC or direct SQL ──
   const handleAssignSubmit = async (venueId) => {
     setAssigning(true)
     try {
-      // Try direct update first
       const { data, error } = await supabase
         .from('profiles')
         .update({
@@ -161,9 +160,7 @@ export default function AdminPage() {
 
       if (error) throw error
 
-      // Check if update actually happened
       if (!data || data.length === 0) {
-        // RLS blocked it silently — use SQL Editor as fallback
         toast.error(
           'Permission denied by RLS. Run this SQL in Supabase:\n' +
           `UPDATE public.profiles SET role='${venueId ? 'venue_owner' : 'user'}', owned_venue_id=${venueId ? `'${venueId}'` : 'NULL'} WHERE id='${assignModal.id}';`
@@ -181,19 +178,25 @@ export default function AdminPage() {
     }
   }
 
+  const getOwnedVenueName = (ownedVenueId) => {
+    const venue = venues.find(v => v.id === ownedVenueId)
+    return venue?.name || null
+  }
+
   const filteredVenues = venues.filter(v =>
     v.name.toLowerCase().includes(venueSearch.toLowerCase()) ||
     v.city.toLowerCase().includes(venueSearch.toLowerCase())
   )
 
+  const filteredUsers = users.filter(u =>
+    (u.full_name || '').toLowerCase().includes(userSearch.toLowerCase()) ||
+    (u.role || '').toLowerCase().includes(userSearch.toLowerCase()) ||
+    (getOwnedVenueName(u.owned_venue_id) || '').toLowerCase().includes(userSearch.toLowerCase())
+  )
+
   const totalRevenue = bookings
     .filter(b => b.status !== 'cancelled')
     .reduce((sum, b) => sum + (b.total_amount || 0), 0)
-
-  const getOwnedVenueName = (ownedVenueId) => {
-    const venue = venues.find(v => v.id === ownedVenueId)
-    return venue?.name || null
-  }
 
   return (
     <div className="bg-dark-950 min-h-screen pt-16">
@@ -480,7 +483,18 @@ export default function AdminPage() {
             <div className="space-y-5 animate-fade-in">
               <div>
                 <h1 className="font-display text-4xl text-white">USERS</h1>
-                <p className="text-slate-500 text-sm mt-0.5">{users.length} registered users</p>
+                <p className="text-slate-500 text-sm mt-0.5">{filteredUsers.length} registered users</p>
+              </div>
+
+              <div className="relative max-w-sm">
+                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <input
+                  type="text"
+                  value={userSearch}
+                  onChange={e => setUserSearch(e.target.value)}
+                  placeholder="Search users..."
+                  className="input pl-9 text-sm py-2.5"
+                />
               </div>
 
               <div className="card p-0 overflow-hidden">
@@ -497,7 +511,7 @@ export default function AdminPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
-                        {users.map(u => (
+                        {filteredUsers.map(u => (
                           <tr key={u.id} className="hover:bg-white/2 transition-colors group">
                             <td className="px-5 py-4">
                               <div className="flex items-center gap-3">
@@ -535,7 +549,7 @@ export default function AdminPage() {
                             </td>
                           </tr>
                         ))}
-                        {users.length === 0 && (
+                        {filteredUsers.length === 0 && (
                           <tr>
                             <td colSpan={5} className="py-8 text-center text-slate-500 text-sm">No users found</td>
                           </tr>
