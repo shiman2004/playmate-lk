@@ -20,6 +20,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import VenueOwnerEditPage from './pages/VenueOwnerEditPage'
 import VenueOwnerDashboard from './pages/VenueOwnerDashboard'
+import AuthCallbackPage from './pages/AuthCallbackPage'
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
           {/* Main layout */}
           <Route path="/" element={<Layout />}>

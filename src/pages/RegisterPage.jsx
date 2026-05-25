@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Eye, EyeOff, UserPlus, Loader, AlertCircle, CheckCircle } from 'lucide-react'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
@@ -12,6 +12,14 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [googleError, setGoogleError] = useState(false)
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('error') === 'google_new_user') {
+      setGoogleError(true)
+    }
+  }, [])
 
   const handleChange = e => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
@@ -172,7 +180,15 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Full Name */}
+            {googleError && (
+              <div className="mb-4 flex items-start gap-2 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
+                <AlertCircle size={15} className="text-yellow-400 shrink-0 mt-0.5" />
+                <p className="text-yellow-400 text-xs">
+                  <strong>No account found!</strong> You need to register first before using Google login. Please create your account below.
+                </p>
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-medium text-slate-400 mb-1.5">Full Name</label>
               <input
@@ -231,11 +247,11 @@ export default function RegisterPage() {
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              {/* Strength bar */}
+
               {strength && (
                 <div className="mt-2">
                   <div className="flex gap-1 mb-1">
-                    {[1,2,3,4].map(i => (
+                    {[1, 2, 3, 4].map(i => (
                       <div
                         key={i}
                         className={`h-1 flex-1 rounded-full transition-all ${
@@ -299,6 +315,14 @@ export default function RegisterPage() {
               )}
             </button>
           </form>
+
+          <div className="mt-4 p-3 rounded-xl bg-dark-800 border border-white/5 text-center">
+            <p className="text-slate-500 text-xs">
+              🔑 After creating your account you can use{' '}
+              <span className="text-white font-semibold">Google login</span>{' '}
+              as a quick sign-in option
+            </p>
+          </div>
         </div>
 
         <p className="text-center text-slate-500 text-sm mt-5">
