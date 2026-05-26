@@ -1,7 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-const FROM_EMAIL = 'onboarding@resend.dev' // Change to bookings@sportive.lk after domain setup
+const FROM_EMAIL = 'onboarding@resend.dev' // Change to bookings@sportiva.lk after domain setup
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -35,7 +35,7 @@ serve(async (req) => {
             <!-- Header -->
             <div style="text-align:center;margin-bottom:32px;">
               <div style="display:inline-block;background:#22c55e;border-radius:12px;padding:8px 16px;margin-bottom:16px;">
-                <span style="color:#000;font-size:20px;font-weight:900;letter-spacing:2px;">SPORTIVE.LK</span>
+                <span style="color:#000;font-size:20px;font-weight:900;letter-spacing:2px;">SPORTIVA.LK</span>
               </div>
             </div>
 
@@ -99,7 +99,7 @@ serve(async (req) => {
 
                 <!-- CTA Button -->
                 <div style="text-align:center;">
-                  <a href="https://sportive-lk.vercel.app/dashboard" 
+                  <a href="https://sportiva-lk.vercel.app/dashboard" 
                     style="display:inline-block;background:#22c55e;color:#000;font-weight:700;font-size:14px;padding:14px 32px;border-radius:12px;text-decoration:none;letter-spacing:0.5px;">
                     View My Bookings →
                   </a>
@@ -108,14 +108,14 @@ serve(async (req) => {
 
               <!-- Footer -->
               <div style="border-top:1px solid rgba(255,255,255,0.05);padding:20px 32px;text-align:center;">
-                <p style="color:#475569;font-size:12px;margin:0 0 4px;">Thank you for booking with Sportive.lk</p>
+                <p style="color:#475569;font-size:12px;margin:0 0 4px;">Thank you for booking with Sportiva.lk</p>
                 <p style="color:#22c55e;font-size:12px;font-weight:600;margin:0;">Book. Play. Repeat. 🏟️</p>
               </div>
             </div>
 
             <!-- Bottom note -->
             <p style="color:#334155;font-size:11px;text-align:center;margin-top:20px;">
-              © ${new Date().getFullYear()} Sportive.lk — Made with ♥ in Sri Lanka 🇱🇰
+              © ${new Date().getFullYear()} Sportiva.lk — Made with ♥ in Sri Lanka 🇱🇰
             </p>
           </div>
         </body>
@@ -132,7 +132,7 @@ serve(async (req) => {
 
             <div style="text-align:center;margin-bottom:24px;">
               <div style="display:inline-block;background:#22c55e;border-radius:12px;padding:8px 16px;">
-                <span style="color:#000;font-size:18px;font-weight:900;letter-spacing:2px;">SPORTIVE.LK</span>
+                <span style="color:#000;font-size:18px;font-weight:900;letter-spacing:2px;">SPORTIVA.LK</span>
               </div>
             </div>
 
@@ -190,7 +190,7 @@ serve(async (req) => {
                 </div>
 
                 <div style="text-align:center;">
-                  <a href="https://sportive-lk.vercel.app/venue-dashboard"
+                  <a href="https://sportiva-lk.vercel.app/venue-dashboard"
                     style="display:inline-block;background:#3b82f6;color:#fff;font-weight:700;font-size:14px;padding:14px 32px;border-radius:12px;text-decoration:none;">
                     View in Dashboard →
                   </a>
@@ -198,7 +198,7 @@ serve(async (req) => {
               </div>
 
               <div style="border-top:1px solid rgba(255,255,255,0.05);padding:16px 32px;text-align:center;">
-                <p style="color:#475569;font-size:12px;margin:0;">Sportive.lk — Book. Play. Repeat. 🏟️</p>
+                <p style="color:#475569;font-size:12px;margin:0;">Sportiva.lk — Book. Play. Repeat. 🏟️</p>
               </div>
             </div>
           </div>
@@ -215,7 +215,7 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           from: FROM_EMAIL,
-          to: userEmail,
+          to: 'mohamedshiman772004@gmail.com', // Change to userEmail after testing
           subject: `✅ Booking Confirmed — ${booking.venue_name} | #${booking.booking_id}`,
           html: userHtml,
         }),
@@ -253,7 +253,7 @@ serve(async (req) => {
 
             <div style="text-align:center;margin-bottom:24px;">
               <div style="display:inline-block;background:#22c55e;border-radius:12px;padding:8px 16px;">
-                <span style="color:#000;font-size:18px;font-weight:900;letter-spacing:2px;">SPORTIVE.LK</span>
+                <span style="color:#000;font-size:18px;font-weight:900;letter-spacing:2px;">SPORTIVA.LK</span>
               </div>
             </div>
 
@@ -301,7 +301,7 @@ serve(async (req) => {
                 </div>
 
                 <div style="text-align:center;">
-                  <a href="https://sportive-lk.vercel.app/venues"
+                  <a href="https://sportiva-lk.vercel.app/venues"
                     style="display:inline-block;background:#22c55e;color:#000;font-weight:700;font-size:14px;padding:14px 32px;border-radius:12px;text-decoration:none;">
                     Book Another Venue →
                   </a>
@@ -309,7 +309,7 @@ serve(async (req) => {
               </div>
 
               <div style="border-top:1px solid rgba(255,255,255,0.05);padding:16px 32px;text-align:center;">
-                <p style="color:#475569;font-size:12px;margin:0;">Sportive.lk — Book. Play. Repeat. 🏟️</p>
+                <p style="color:#475569;font-size:12px;margin:0;">Sportiva.lk — Book. Play. Repeat. 🏟️</p>
               </div>
             </div>
           </div>
@@ -325,7 +325,7 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           from: FROM_EMAIL,
-          to: userEmail,
+          to:'mohamedshiman772004@gmail.com', // Change to userEmail after testing
           subject: `❌ Booking Cancelled — ${booking.venue_name} | #${booking.booking_id}`,
           html: cancelHtml,
         }),
