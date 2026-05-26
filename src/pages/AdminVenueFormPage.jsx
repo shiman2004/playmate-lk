@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
 const CITIES = ['Colombo', 'Nugegoda', 'Kandy', 'Galle', 'Kelaniya', 'Negombo', 'Matara', 'Jaffna', 'Kurunegala', 'Ratnapura']
-const SPORTS_OPTIONS = ['Futsal', 'Badminton', 'Cricket', 'Basketball', 'Table Tennis', 'Squash']
+const SPORTS_OPTIONS = ['Futsal', 'Badminton', 'Cricket']
 const AMENITIES_OPTIONS = ['Air Conditioning', 'Changing Rooms', 'Parking', 'Cafe', 'WiFi', 'Locker', 'First Aid', 'Pro Shop', 'Coaching Available', 'Equipment Rental', 'Cafeteria', 'Video Analysis', 'Bowling Machine', 'Spectator Area', 'Coaching']
 
 const EMPTY_FORM = {

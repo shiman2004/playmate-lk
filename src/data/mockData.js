@@ -87,7 +87,7 @@ export const mockVenues = [
     id: '4',
     name: 'GameZone Multi-Sport Arena',
     slug: 'gamezone-multisport',
-    description: 'All-in-one multi-sport complex offering futsal, badminton, and basketball courts. Modern facilities with cafeteria, spectator seating, and event hosting capabilities. The ultimate destination for sports enthusiasts.',
+    description: 'All-in-one multi-sport complex offering futsal and badminton courts. Modern facilities with cafeteria, spectator seating, and event hosting capabilities. The ultimate destination for sports enthusiasts.',
     address: '23 Union Place, Colombo 02',
     city: 'Colombo',
     district: 'Colombo',
@@ -104,7 +104,7 @@ export const mockVenues = [
       'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=800&q=80',
       'https://images.unsplash.com/photo-1607627000458-210e8d2bdb1d?w=800&q=80',
     ],
-    sports: ['Futsal', 'Badminton', 'Basketball'],
+    sports: ['Futsal', 'Badminton'],
     open_time: '06:00',
     close_time: '00:00',
     lat: 6.9139,
@@ -173,9 +173,6 @@ export const mockSports = [
   { id: '1', name: 'Futsal', icon: '⚽', color: 'green', venue_count: 18 },
   { id: '2', name: 'Badminton', icon: '🏸', color: 'blue', venue_count: 24 },
   { id: '3', name: 'Cricket', icon: '🏏', color: 'orange', venue_count: 12 },
-  { id: '4', name: 'Basketball', icon: '🏀', color: 'red', venue_count: 8 },
-  { id: '5', name: 'Table Tennis', icon: '🏓', color: 'purple', venue_count: 15 },
-  { id: '6', name: 'Squash', icon: '🎾', color: 'yellow', venue_count: 6 },
 ]
 
 export const mockTestimonials = [

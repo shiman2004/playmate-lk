@@ -204,10 +204,7 @@ CREATE POLICY "Users can update own reviews" ON public.reviews FOR UPDATE USING 
 INSERT INTO public.sports (name, icon) VALUES
   ('Futsal', '⚽'),
   ('Badminton', '🏸'),
-  ('Cricket', '🏏'),
-  ('Basketball', '🏀'),
-  ('Table Tennis', '🏓'),
-  ('Squash', '🎾')
+  ('Cricket', '🏏')
 ON CONFLICT (name) DO NOTHING;
 
 -- ============================================================

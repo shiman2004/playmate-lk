@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Filter, X, ChevronDown, ChevronUp } from 'lucide-react'
 
-const SPORTS = ['Futsal', 'Badminton', 'Cricket', 'Basketball', 'Table Tennis', 'Squash']
+const SPORTS = ['Futsal', 'Badminton', 'Cricket']
 const CITIES = ['Colombo', 'Nugegoda', 'Kandy', 'Galle', 'Kelaniya', 'Negombo', 'Matara', 'Jaffna']
 const PRICE_RANGES = [
   { label: 'Under Rs 2,000', max: 2000 },

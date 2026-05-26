@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Search, MapPin, ArrowRight, Star, Users, Building2, Trophy, Zap, ChevronRight } from 'lucide-react'
+import { Search, MapPin, Star, Users, Building2, Trophy, Zap, ChevronRight } from 'lucide-react'
 import { useVenues } from '../hooks/useVenues'
 import VenueCard from '../components/venues/VenueCard'
-import { mockSports, mockTestimonials, mockStats } from '../data/mockData'
+import { mockSports, mockStats } from '../data/mockData'
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -23,9 +23,6 @@ export default function HomePage() {
     Futsal: 'from-green-500/20 to-emerald-600/10 border-green-500/20',
     Badminton: 'from-blue-500/20 to-sky-600/10 border-blue-500/20',
     Cricket: 'from-orange-500/20 to-amber-600/10 border-orange-500/20',
-    Basketball: 'from-red-500/20 to-rose-600/10 border-red-500/20',
-    'Table Tennis': 'from-purple-500/20 to-violet-600/10 border-purple-500/20',
-    Squash: 'from-yellow-500/20 to-amber-600/10 border-yellow-500/20',
   }
 
   return (
@@ -251,44 +248,6 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-white font-heading font-semibold text-xl mb-2">{title}</h3>
                 <p className="text-slate-500 text-sm leading-relaxed">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* TESTIMONIALS */}
-      <section className="section">
-        <div className="container-custom">
-          <div className="text-center mb-12">
-            <p className="text-primary-400 text-sm font-semibold tracking-widest uppercase mb-3">Player Reviews</p>
-            <h2 className="font-display text-5xl md:text-6xl text-white">
-              WHAT PLAYERS <span className="text-gradient">SAY</span>
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {mockTestimonials.map((t, i) => (
-              <div key={t.id} className="card-hover group" style={{ animationDelay: `${i * 0.1}s` }}>
-                {/* Stars */}
-                <div className="flex gap-0.5 mb-4">
-                  {Array.from({ length: t.rating }).map((_, j) => (
-                    <Star key={j} size={15} fill="#facc15" className="text-yellow-400" />
-                  ))}
-                </div>
-
-                <p className="text-slate-400 text-sm leading-relaxed mb-5 italic">"{t.text}"</p>
-
-                <div className="flex items-center gap-3 border-t border-white/5 pt-4">
-                  <img src={t.avatar} alt={t.name} className="w-10 h-10 rounded-full bg-dark-700" />
-                  <div>
-                    <p className="text-white font-semibold text-sm">{t.name}</p>
-                    <p className="text-slate-600 text-xs">{t.role}</p>
-                  </div>
-                  <span className="ml-auto text-primary-400 text-xs px-2 py-0.5 rounded-full bg-primary-500/10 border border-primary-500/20">
-                    ✓ Verified
-                  </span>
-                </div>
               </div>
             ))}
           </div>

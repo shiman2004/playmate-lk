@@ -5,7 +5,6 @@ const SPORT_COLORS = {
   Futsal: 'sport-tag-futsal',
   Badminton: 'sport-tag-badminton',
   Cricket: 'sport-tag-cricket',
-  Basketball: 'bg-red-500/10 text-red-400 border-red-500/20 sport-tag',
   default: 'bg-slate-500/10 text-slate-400 border-slate-500/20 sport-tag',
 }
 
