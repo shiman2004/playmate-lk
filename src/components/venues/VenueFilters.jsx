@@ -28,7 +28,10 @@ export default function VenueFilters({ filters, onChange, onClear }) {
     </div>
   )
 
-  const hasFilters = filters.sport || filters.city || filters.maxPrice || filters.minRating
+  const hasFilters = filters.sport || filters.city || filters.minPrice || filters.maxPrice || filters.minRating
+  const isPriceSelected = (range) =>
+    String(filters.minPrice || '') === String(range.min || '') &&
+    String(filters.maxPrice || '') === String(range.max || '')
 
   return (
     <div className="card sticky top-20">
@@ -97,8 +100,12 @@ export default function VenueFilters({ filters, onChange, onClear }) {
               <input
                 type="radio"
                 name="price"
-                checked={filters.maxPrice === range.max}
-                onChange={() => onChange({ maxPrice: filters.maxPrice === range.max ? '' : range.max })}
+                checked={isPriceSelected(range)}
+                onChange={() => onChange(
+                  isPriceSelected(range)
+                    ? { minPrice: '', maxPrice: '' }
+                    : { minPrice: range.min || '', maxPrice: range.max || '' }
+                )}
                 className="accent-primary-500 w-4 h-4 cursor-pointer"
               />
               <span className="text-slate-400 group-hover:text-slate-300 text-sm transition-colors">

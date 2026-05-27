@@ -2,6 +2,48 @@ import { useState, useEffect } from 'react'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import { mockVenues, mockTimeSlots } from '../data/mockData'
 
+function getVenueSports(venue) {
+  if (Array.isArray(venue.sports)) return venue.sports
+
+  if (Array.isArray(venue.venue_sports)) {
+    return venue.venue_sports
+      .map(item => item.sports?.name)
+      .filter(Boolean)
+  }
+
+  return []
+}
+
+function applyVenueFilters(venues, filters = {}) {
+  return venues.filter(venue => {
+    const sports = getVenueSports(venue)
+    const price = Number(venue.price_per_hour || 0)
+    const rating = Number(venue.rating || 0)
+    const query = filters.search?.trim().toLowerCase()
+
+    if (filters.sport && !sports.includes(filters.sport)) return false
+    if (filters.city && !venue.city?.toLowerCase().includes(filters.city.toLowerCase())) return false
+    if (filters.minPrice && price < Number(filters.minPrice)) return false
+    if (filters.maxPrice && price > Number(filters.maxPrice)) return false
+    if (filters.minRating && rating < Number(filters.minRating)) return false
+    if (filters.featured && !venue.is_featured) return false
+
+    if (query) {
+      const searchable = [
+        venue.name,
+        venue.address,
+        venue.city,
+        venue.district,
+        ...sports,
+      ].filter(Boolean).join(' ').toLowerCase()
+
+      if (!searchable.includes(query)) return false
+    }
+
+    return true
+  })
+}
+
 export function useVenues(filters = {}) {
   const [venues, setVenues] = useState([])
   const [loading, setLoading] = useState(true)
@@ -18,21 +60,7 @@ export function useVenues(filters = {}) {
       if (!isSupabaseConfigured) {
         // Use mock data
         await new Promise(r => setTimeout(r, 600))
-        let filtered = [...mockVenues]
-        if (filters.sport) filtered = filtered.filter(v => v.sports.includes(filters.sport))
-        if (filters.city) filtered = filtered.filter(v => v.city.toLowerCase().includes(filters.city.toLowerCase()))
-        if (filters.maxPrice) filtered = filtered.filter(v => v.price_per_hour <= filters.maxPrice)
-        if (filters.minRating) filtered = filtered.filter(v => v.rating >= filters.minRating)
-        if (filters.search) {
-          const q = filters.search.toLowerCase()
-          filtered = filtered.filter(v =>
-            v.name.toLowerCase().includes(q) ||
-            v.address.toLowerCase().includes(q) ||
-            v.sports.some(s => s.toLowerCase().includes(q))
-          )
-        }
-        if (filters.featured) filtered = filtered.filter(v => v.is_featured)
-        setVenues(filtered)
+        setVenues(applyVenueFilters(mockVenues, filters))
         return
       }
 
@@ -41,17 +69,15 @@ export function useVenues(filters = {}) {
         .select('*, venue_sports(sports(name))')
         .eq('is_active', true)
 
-      if (filters.city) query = query.ilike('city', `%${filters.city}%`)
-      if (filters.maxPrice) query = query.lte('price_per_hour', filters.maxPrice)
-      if (filters.minRating) query = query.gte('rating', filters.minRating)
-      if (filters.featured) query = query.eq('is_featured', true)
-      if (filters.search) {
-        query = query.or(`name.ilike.%${filters.search}%,address.ilike.%${filters.search}%`)
-      }
-
       const { data, error: err } = await query.order('rating', { ascending: false })
       if (err) throw err
-      setVenues(data || [])
+
+      const formatted = (data || []).map(venue => ({
+        ...venue,
+        sports: getVenueSports(venue),
+      }))
+
+      setVenues(applyVenueFilters(formatted, filters))
     } catch (err) {
       setError(err.message)
     } finally {

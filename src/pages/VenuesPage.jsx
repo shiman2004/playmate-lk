@@ -14,6 +14,7 @@ export default function VenuesPage() {
     search: searchParams.get('search') || '',
     sport: searchParams.get('sport') || '',
     city: searchParams.get('city') || '',
+    minPrice: '',
     maxPrice: '',
     minRating: '',
   })
@@ -29,10 +30,17 @@ export default function VenuesPage() {
   }, [filters])
 
   const updateFilter = (updates) => setFilters(prev => ({ ...prev, ...updates }))
-  const clearFilters = () => setFilters({ search: '', sport: '', city: '', maxPrice: '', minRating: '' })
+  const clearFilters = () => setFilters({ search: '', sport: '', city: '', minPrice: '', maxPrice: '', minRating: '' })
 
-  const hasFilters = filters.sport || filters.city || filters.maxPrice || filters.minRating || filters.search
-  const activeFilterCount = [filters.sport, filters.city, filters.maxPrice, filters.minRating].filter(Boolean).length
+  const hasFilters = filters.sport || filters.city || filters.minPrice || filters.maxPrice || filters.minRating || filters.search
+  const activeFilterCount = [filters.sport, filters.city, filters.minPrice || filters.maxPrice, filters.minRating].filter(Boolean).length
+  const priceLabel = filters.minPrice && filters.maxPrice
+    ? `Rs ${Number(filters.minPrice).toLocaleString()} - ${Number(filters.maxPrice).toLocaleString()}`
+    : filters.minPrice
+      ? `Rs ${Number(filters.minPrice).toLocaleString()}+`
+      : filters.maxPrice
+        ? `Under Rs ${Number(filters.maxPrice).toLocaleString()}`
+        : ''
 
   return (
     <div className="bg-dark-950 min-h-screen pt-16">
@@ -98,7 +106,7 @@ export default function VenuesPage() {
           </div>
 
           {/* Active filters pills */}
-          {(filters.sport || filters.city || filters.maxPrice) && (
+          {hasFilters && (
             <div className="flex flex-wrap gap-2 mt-4">
               {filters.sport && (
                 <span className="badge-green flex items-center gap-1 py-1.5">
@@ -112,10 +120,16 @@ export default function VenuesPage() {
                   <button onClick={() => updateFilter({ city: '' })} className="ml-1 hover:text-white"><X size={11} /></button>
                 </span>
               )}
-              {filters.maxPrice && (
+              {priceLabel && (
                 <span className="badge-yellow flex items-center gap-1 py-1.5">
-                  Rs max {filters.maxPrice?.toLocaleString()}
-                  <button onClick={() => updateFilter({ maxPrice: '' })} className="ml-1 hover:text-white"><X size={11} /></button>
+                  {priceLabel}
+                  <button onClick={() => updateFilter({ minPrice: '', maxPrice: '' })} className="ml-1 hover:text-white"><X size={11} /></button>
+                </span>
+              )}
+              {filters.minRating && (
+                <span className="badge-yellow flex items-center gap-1 py-1.5">
+                  {Number(filters.minRating).toFixed(1)}+ rating
+                  <button onClick={() => updateFilter({ minRating: '' })} className="ml-1 hover:text-white"><X size={11} /></button>
                 </span>
               )}
               <button onClick={clearFilters} className="text-xs text-red-400 hover:text-red-300 px-2 py-1 rounded-full hover:bg-red-500/10 transition-all">
