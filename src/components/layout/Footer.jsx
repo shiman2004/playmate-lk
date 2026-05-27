@@ -8,11 +8,14 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <Link to="/" className="flex items-center gap-2 mb-4">
+            <Link
+              to="/"
+              className="inline-flex items-center rounded-xl bg-white px-3 py-1.5 shadow-lg shadow-black/20 mb-4"
+            >
               <img
                 src="/sportiva_logo.png"
                 alt="Sportiva.lk"
-                className="h-10 w-auto object-contain"
+                className="h-9 w-auto object-contain"
               />
             </Link>
             <p className="text-slate-500 text-sm leading-relaxed mb-5">

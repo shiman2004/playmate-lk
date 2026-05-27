@@ -44,11 +44,14 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16 md:h-18">
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
+          <Link
+            to="/"
+            className="inline-flex items-center rounded-xl bg-white px-3 py-1.5 shadow-lg shadow-black/20 transition-transform duration-200 hover:scale-[1.02]"
+          >
             <img
               src="/sportiva_logo.png"
               alt="Sportiva.lk"
-              className="h-10 w-auto object-contain transition-opacity duration-200 group-hover:opacity-90"
+              className="h-9 w-auto object-contain"
             />
           </Link>
 

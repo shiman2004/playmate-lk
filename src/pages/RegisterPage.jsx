@@ -155,11 +155,14 @@ export default function RegisterPage() {
       <div className="w-full max-w-md relative z-10 py-8">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center justify-center mb-6">
+          <Link
+            to="/"
+            className="inline-flex items-center justify-center rounded-2xl bg-white px-4 py-2 shadow-xl shadow-black/25 mb-6"
+          >
             <img
               src="/sportiva_logo.png"
               alt="Sportiva.lk"
-              className="h-14 w-auto object-contain"
+              className="h-12 w-auto object-contain"
             />
           </Link>
           <h1 className="font-heading font-bold text-3xl text-white">Create Account</h1>
