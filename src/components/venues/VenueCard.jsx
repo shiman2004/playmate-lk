@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { MapPin, Clock, Star, Tag } from 'lucide-react'
+import { MapPin, Clock, Star } from 'lucide-react'
 
 const SPORT_COLORS = {
   Futsal: 'sport-tag-futsal',
@@ -60,6 +60,13 @@ export default function VenueCard({ venue }) {
           <MapPin size={13} className="shrink-0" />
           <span className="truncate">{venue.address}</span>
         </div>
+
+        {venue.distance != null && (
+          <div className="flex items-center gap-1.5 text-primary-400 text-xs font-semibold mb-3">
+            <MapPin size={12} className="shrink-0" />
+            <span>{venue.distance.toFixed(1)} km away</span>
+          </div>
+        )}
 
         {/* Rating & Hours */}
         <div className="flex items-center justify-between mb-4">

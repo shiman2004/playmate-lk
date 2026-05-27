@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import { mockVenues, mockTimeSlots } from '../data/mockData'
+import { calculateDistance } from '../lib/distance'
 
 function getVenueSports(venue) {
   if (Array.isArray(venue.sports)) return venue.sports
@@ -15,7 +16,7 @@ function getVenueSports(venue) {
 }
 
 function applyVenueFilters(venues, filters = {}) {
-  return venues.filter(venue => {
+  const filtered = venues.filter(venue => {
     const sports = getVenueSports(venue)
     const price = Number(venue.price_per_hour || 0)
     const rating = Number(venue.rating || 0)
@@ -42,6 +43,26 @@ function applyVenueFilters(venues, filters = {}) {
 
     return true
   })
+
+  if (!filters.userLocation) return filtered
+
+  return filtered
+    .map(venue => {
+      const distance = calculateDistance(
+        filters.userLocation.latitude,
+        filters.userLocation.longitude,
+        venue.latitude ?? venue.lat,
+        venue.longitude ?? venue.lng
+      )
+
+      return { ...venue, distance }
+    })
+    .sort((a, b) => {
+      if (a.distance == null && b.distance == null) return 0
+      if (a.distance == null) return 1
+      if (b.distance == null) return -1
+      return a.distance - b.distance
+    })
 }
 
 export function useVenues(filters = {}) {

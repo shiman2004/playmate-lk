@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Search, SlidersHorizontal, X, Grid, List } from 'lucide-react'
+import { LocateFixed, Search, SlidersHorizontal, X, Grid, List } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { useVenues } from '../hooks/useVenues'
 import VenueCard from '../components/venues/VenueCard'
 import VenueFilters from '../components/venues/VenueFilters'
@@ -9,6 +10,8 @@ export default function VenuesPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [viewMode, setViewMode] = useState('grid')
+  const [locationLoading, setLocationLoading] = useState(false)
+  const [userLocation, setUserLocation] = useState(null)
 
   const [filters, setFilters] = useState({
     search: searchParams.get('search') || '',
@@ -17,6 +20,7 @@ export default function VenuesPage() {
     minPrice: '',
     maxPrice: '',
     minRating: '',
+    userLocation: null,
   })
 
   const { venues, loading, error } = useVenues(filters)
@@ -30,10 +34,43 @@ export default function VenuesPage() {
   }, [filters])
 
   const updateFilter = (updates) => setFilters(prev => ({ ...prev, ...updates }))
-  const clearFilters = () => setFilters({ search: '', sport: '', city: '', minPrice: '', maxPrice: '', minRating: '' })
+  const clearFilters = () => {
+    setUserLocation(null)
+    setFilters({ search: '', sport: '', city: '', minPrice: '', maxPrice: '', minRating: '', userLocation: null })
+  }
 
-  const hasFilters = filters.sport || filters.city || filters.minPrice || filters.maxPrice || filters.minRating || filters.search
-  const activeFilterCount = [filters.sport, filters.city, filters.minPrice || filters.maxPrice, filters.minRating].filter(Boolean).length
+  const handleNearMe = () => {
+    if (!navigator.geolocation) {
+      toast.error('Location is not supported on this browser.')
+      return
+    }
+
+    setLocationLoading(true)
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const location = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        }
+        setUserLocation(location)
+        setFilters(prev => ({ ...prev, userLocation: location }))
+        setLocationLoading(false)
+        toast.success('Showing courts nearest to you.')
+      },
+      error => {
+        setLocationLoading(false)
+        if (error.code === error.PERMISSION_DENIED) {
+          toast.error('Location permission denied. You can still search manually.')
+          return
+        }
+        toast.error('Unable to get your location right now.')
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    )
+  }
+
+  const hasFilters = filters.sport || filters.city || filters.minPrice || filters.maxPrice || filters.minRating || filters.search || filters.userLocation
+  const activeFilterCount = [filters.sport, filters.city, filters.minPrice || filters.maxPrice, filters.minRating, filters.userLocation].filter(Boolean).length
   const priceLabel = filters.minPrice && filters.maxPrice
     ? `Rs ${Number(filters.minPrice).toLocaleString()} - ${Number(filters.maxPrice).toLocaleString()}`
     : filters.minPrice
@@ -50,7 +87,7 @@ export default function VenuesPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="font-display text-4xl md:text-5xl text-white">
-                ALL <span className="text-gradient">VENUES</span>
+                {userLocation ? 'COURTS' : 'ALL'} <span className="text-gradient">{userLocation ? 'NEAR YOU' : 'VENUES'}</span>
               </h1>
               <p className="text-slate-500 text-sm mt-1">
                 {loading ? 'Searching...' : `${venues.length} venue${venues.length !== 1 ? 's' : ''} found`}
@@ -59,8 +96,8 @@ export default function VenuesPage() {
             </div>
 
             {/* Search bar */}
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1 sm:w-64">
+            <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
+              <div className="relative min-w-0 flex-1 sm:w-64">
                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
                   type="text"
@@ -75,6 +112,18 @@ export default function VenuesPage() {
                   </button>
                 )}
               </div>
+
+              <button
+                type="button"
+                onClick={handleNearMe}
+                disabled={locationLoading}
+                className={`btn-secondary flex items-center gap-2 text-sm py-2.5 px-3 sm:px-4 whitespace-nowrap ${
+                  userLocation ? 'border-primary-500/40 text-primary-400' : ''
+                }`}
+              >
+                <LocateFixed size={15} className={locationLoading ? 'animate-pulse' : ''} />
+                {locationLoading ? 'Locating...' : 'Near Me'}
+              </button>
 
               {/* Mobile filter toggle */}
               <button
@@ -130,6 +179,20 @@ export default function VenuesPage() {
                 <span className="badge-yellow flex items-center gap-1 py-1.5">
                   {Number(filters.minRating).toFixed(1)}+ rating
                   <button onClick={() => updateFilter({ minRating: '' })} className="ml-1 hover:text-white"><X size={11} /></button>
+                </span>
+              )}
+              {filters.userLocation && (
+                <span className="badge-green flex items-center gap-1 py-1.5">
+                  Near Me
+                  <button
+                    onClick={() => {
+                      setUserLocation(null)
+                      updateFilter({ userLocation: null })
+                    }}
+                    className="ml-1 hover:text-white"
+                  >
+                    <X size={11} />
+                  </button>
                 </span>
               )}
               <button onClick={clearFilters} className="text-xs text-red-400 hover:text-red-300 px-2 py-1 rounded-full hover:bg-red-500/10 transition-all">

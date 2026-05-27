@@ -74,6 +74,9 @@ CREATE TABLE IF NOT EXISTS public.venues (
   close_time      TIME DEFAULT '22:00',
   lat             DECIMAL(10,8),
   lng             DECIMAL(11,8),
+  latitude        DOUBLE PRECISION,
+  longitude       DOUBLE PRECISION,
+  google_maps_link TEXT,
   owner_id        UUID REFERENCES public.profiles(id),
   created_at      TIMESTAMPTZ DEFAULT NOW(),
   updated_at      TIMESTAMPTZ DEFAULT NOW()

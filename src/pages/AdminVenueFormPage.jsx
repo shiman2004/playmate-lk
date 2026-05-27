@@ -13,6 +13,9 @@ const EMPTY_FORM = {
   address: '',
   city: '',
   district: '',
+  google_maps_link: '',
+  latitude: '',
+  longitude: '',
   phone: '',
   email: '',
   description: '',
@@ -67,6 +70,9 @@ export default function AdminVenueFormPage() {
         images: data.images?.length ? data.images : [''],
         night_surcharge: data.night_surcharge || 0,
         half_hour_price: data.half_hour_price || '',
+        latitude: data.latitude ?? data.lat ?? '',
+        longitude: data.longitude ?? data.lng ?? '',
+        google_maps_link: data.google_maps_link || '',
       })
     } catch (err) {
       toast.error('Failed to load venue')
@@ -156,6 +162,16 @@ export default function AdminVenueFormPage() {
     if (!form.name.trim()) e.name = 'Venue name is required'
     if (!form.address.trim()) e.address = 'Address is required'
     if (!form.city) e.city = 'City is required'
+    if (form.latitude === '') e.latitude = 'Latitude is required'
+    if (form.longitude === '') e.longitude = 'Longitude is required'
+    const latitude = Number(form.latitude)
+    const longitude = Number(form.longitude)
+    if (form.latitude !== '' && (!Number.isFinite(latitude) || latitude < -90 || latitude > 90)) {
+      e.latitude = 'Latitude must be between -90 and 90'
+    }
+    if (form.longitude !== '' && (!Number.isFinite(longitude) || longitude < -180 || longitude > 180)) {
+      e.longitude = 'Longitude must be between -180 and 180'
+    }
     if (!form.phone.trim()) e.phone = 'Phone is required'
     if (!form.price_per_hour) e.price_per_hour = 'Price per hour is required'
     if (!form.half_hour_price) e.half_hour_price = 'Half hour price is required'
@@ -180,6 +196,9 @@ export default function AdminVenueFormPage() {
         address: form.address.trim(),
         city: form.city,
         district: form.district || form.city,
+        google_maps_link: form.google_maps_link.trim() || null,
+        latitude: Number(form.latitude),
+        longitude: Number(form.longitude),
         phone: form.phone.trim(),
         email: form.email.trim(),
         description: form.description.trim(),
@@ -315,6 +334,47 @@ export default function AdminVenueFormPage() {
                   placeholder="e.g. Colombo"
                   className="input"
                 />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-1.5">Google Maps Link</label>
+              <input
+                name="google_maps_link"
+                type="url"
+                value={form.google_maps_link}
+                onChange={handleChange}
+                placeholder="https://maps.google.com/..."
+                className="input"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-1.5">Latitude *</label>
+                <input
+                  name="latitude"
+                  type="number"
+                  step="any"
+                  value={form.latitude}
+                  onChange={handleChange}
+                  placeholder="e.g. 6.9271"
+                  className="input"
+                />
+                {errors.latitude && <p className="text-red-400 text-xs mt-1">{errors.latitude}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-1.5">Longitude *</label>
+                <input
+                  name="longitude"
+                  type="number"
+                  step="any"
+                  value={form.longitude}
+                  onChange={handleChange}
+                  placeholder="e.g. 79.8612"
+                  className="input"
+                />
+                {errors.longitude && <p className="text-red-400 text-xs mt-1">{errors.longitude}</p>}
               </div>
             </div>
 
