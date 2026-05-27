@@ -46,12 +46,12 @@ export default function Navbar() {
           {/* Logo */}
           <Link
             to="/"
-            className="inline-flex items-center rounded-xl bg-white px-3 py-1.5 shadow-lg shadow-black/20 transition-transform duration-200 hover:scale-[1.02]"
+            className="inline-flex items-center rounded-lg bg-white px-2.5 py-1 shadow-lg shadow-black/20 transition-transform duration-200 hover:scale-[1.02] sm:rounded-xl sm:px-3 sm:py-1.5"
           >
             <img
               src="/sportiva_logo.png"
               alt="Sportiva.lk"
-              className="h-9 w-auto object-contain"
+              className="h-7 w-auto object-contain sm:h-9"
             />
           </Link>
 
