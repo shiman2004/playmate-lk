@@ -145,19 +145,6 @@ export default function HomePage() {
               </button>
             </form>
 
-            {/* Quick filters */}
-            <div className="flex flex-wrap items-center justify-center gap-2 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-              <span className="text-slate-600 text-sm">Popular:</span>
-              {['Futsal in Colombo', 'Badminton Nugegoda', 'Cricket Kandy'].map(tag => (
-                <button
-                  key={tag}
-                  onClick={() => navigate(`/venues?search=${tag}`)}
-                  className="px-3 py-1.5 rounded-full bg-dark-800 border border-white/5 text-slate-400 hover:text-primary-400 hover:border-primary-500/30 text-xs font-medium transition-all"
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Stats */}
