@@ -309,7 +309,7 @@ serve(async (req) => {
               </div>
 
               <div style="border-top:1px solid rgba(255,255,255,0.05);padding:16px 32px;text-align:center;">
-                <p style="color:#475569;font-size:12px;margin:0;">Sportiva.lk — Book. Play. Repeat. 🏟️</p>
+                <p style="color:#475569;font-size:12px;margin:0;">Sportive.lk — Book. Play. Repeat. 🏟️</p>
               </div>
             </div>
           </div>

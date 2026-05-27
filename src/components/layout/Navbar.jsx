@@ -45,14 +45,11 @@ export default function Navbar() {
 
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center shadow-lg shadow-primary-500/30 group-hover:shadow-primary-500/50 transition-all duration-200">
-              <span className="text-black font-display text-lg leading-none">S</span>
-            </div>
-            <span className="font-display text-2xl tracking-wide">
-              <span className="text-white">SPOR</span>
-              <span className="text-primary-400">TIVA</span>
-              <span className="text-white">.LK</span>
-            </span>
+            <img
+              src="/sportiva_logo.png"
+              alt="Sportiva.lk"
+              className="h-10 w-auto object-contain transition-opacity duration-200 group-hover:opacity-90"
+            />
           </Link>
 
           {/* Desktop Nav Links */}

@@ -9,14 +9,11 @@ export default function Footer() {
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
-                <span className="text-black font-display text-lg leading-none">S</span>
-              </div>
-              <span className="font-display text-2xl tracking-wide">
-                <span className="text-white">SPOR</span>
-                <span className="text-primary-400">TIVE</span>
-                <span className="text-white">.LK</span>
-              </span>
+              <img
+                src="/sportiva_logo.png"
+                alt="Sportiva.lk"
+                className="h-10 w-auto object-contain"
+              />
             </Link>
             <p className="text-slate-500 text-sm leading-relaxed mb-5">
               Sri Lanka's #1 indoor sports venue booking platform. Find and book your favourite

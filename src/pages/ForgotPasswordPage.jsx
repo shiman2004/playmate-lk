@@ -37,15 +37,12 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-md relative z-10">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-9 h-9 bg-primary-500 rounded-xl flex items-center justify-center">
-            <span className="text-black font-display text-xl leading-none">S</span>
-        </div>
-            <span className="font-display text-3xl tracking-wide">
-            <span className="text-white">SPOR</span>
-            <span className="text-primary-400">TIVA</span>
-            <span className="text-white">.LK</span>
-            </span>
+          <Link to="/" className="inline-flex items-center justify-center mb-6">
+            <img
+              src="/sportiva_logo.png"
+              alt="Sportiva.lk"
+              className="h-14 w-auto object-contain"
+            />
           </Link>
           <h1 className="font-heading font-bold text-3xl text-white">
             {sent ? 'Email Sent!' : 'Forgot Password'}
