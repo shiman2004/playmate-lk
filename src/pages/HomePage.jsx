@@ -1,15 +1,54 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Search, MapPin, Star, Users, Building2, Trophy, Zap, ChevronRight } from 'lucide-react'
+import { Search, MapPin, Star, Building2, Trophy, Zap, ChevronRight } from 'lucide-react'
 import { useVenues } from '../hooks/useVenues'
 import VenueCard from '../components/venues/VenueCard'
-import { mockSports, mockStats } from '../data/mockData'
+import { mockSports } from '../data/mockData'
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchCity, setSearchCity] = useState('')
   const navigate = useNavigate()
-  const { venues: featuredVenues, loading } = useVenues({ featured: true })
+  const { venues: featuredVenues, loading: featuredLoading } = useVenues({ featured: true })
+  const { venues: allVenues, loading: venuesLoading } = useVenues()
+
+  const getVenueSports = (venue) => {
+    if (Array.isArray(venue.sports)) return venue.sports
+
+    if (Array.isArray(venue.venue_sports)) {
+      return venue.venue_sports
+        .map(item => item.sports?.name)
+        .filter(Boolean)
+    }
+
+    return []
+  }
+
+  const sportCategories = useMemo(() => {
+    const counts = allVenues.reduce((acc, venue) => {
+      getVenueSports(venue).forEach(sport => {
+        acc[sport] = (acc[sport] || 0) + 1
+      })
+      return acc
+    }, {})
+
+    return mockSports.map(sport => ({
+      ...sport,
+      venue_count: counts[sport.name] || 0,
+    }))
+  }, [allVenues])
+
+  const homepageStats = useMemo(() => {
+    const cityCount = new Set(allVenues.map(venue => venue.city).filter(Boolean)).size
+    const activeSportCount = sportCategories.filter(sport => sport.venue_count > 0).length
+
+    return [
+      { icon: Building2, value: venuesLoading ? '...' : allVenues.length, label: 'Venues' },
+      { icon: MapPin, value: venuesLoading ? '...' : cityCount, label: 'Cities' },
+      { icon: Trophy, value: venuesLoading ? '...' : activeSportCount, label: 'Sports' },
+      { icon: Star, value: featuredLoading ? '...' : featuredVenues.length, label: 'Featured' },
+    ]
+  }, [allVenues, featuredLoading, featuredVenues.length, sportCategories, venuesLoading])
 
   const handleSearch = (e) => {
     e.preventDefault()
@@ -123,12 +162,7 @@ export default function HomePage() {
 
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto mt-20">
-            {[
-              { icon: Building2, value: `${mockStats.total_venues}+`, label: 'Venues' },
-              { icon: Trophy, value: `${mockStats.cities}`, label: 'Cities' },
-              { icon: Users, value: `${(mockStats.active_users / 1000).toFixed(1)}K+`, label: 'Players' },
-              { icon: Star, value: `${(mockStats.total_bookings / 1000).toFixed(1)}K+`, label: 'Bookings' },
-            ].map(({ icon: Icon, value, label }) => (
+            {homepageStats.map(({ icon: Icon, value, label }) => (
               <div key={label} className="glass rounded-2xl p-5 text-center group hover:border-primary-500/20 transition-all">
                 <div className="w-10 h-10 rounded-xl bg-primary-500/10 flex items-center justify-center mx-auto mb-2 group-hover:bg-primary-500/20 transition-all">
                   <Icon size={18} className="text-primary-400" />
@@ -158,8 +192,8 @@ export default function HomePage() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {mockSports.map((sport, i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-4xl mx-auto">
+            {sportCategories.map((sport, i) => (
               <Link
                 key={sport.id}
                 to={`/venues?sport=${sport.name}`}
@@ -171,7 +205,9 @@ export default function HomePage() {
                   {sport.icon}
                 </div>
                 <h3 className="text-white font-heading font-semibold text-sm mb-1">{sport.name}</h3>
-                <p className="text-slate-500 text-xs">{sport.venue_count} venues</p>
+                <p className="text-slate-500 text-xs">
+                  {venuesLoading ? 'Loading...' : `${sport.venue_count} venue${sport.venue_count !== 1 ? 's' : ''}`}
+                </p>
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               </Link>
             ))}
@@ -194,7 +230,7 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {loading ? (
+          {featuredLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="rounded-2xl overflow-hidden">
@@ -238,7 +274,7 @@ export default function HomePage() {
             <div className="hidden md:block absolute top-12 left-1/3 right-1/3 h-0.5 bg-gradient-to-r from-primary-500/50 via-primary-400 to-primary-500/50 z-0" />
 
             {[
-              { step: '01', title: 'Find Your Venue', desc: 'Browse and filter from 50+ premium indoor sports venues across Sri Lanka.' },
+              { step: '01', title: 'Find Your Venue', desc: 'Browse and filter available indoor sports venues across Sri Lanka.' },
               { step: '02', title: 'Pick a Slot', desc: 'Choose your preferred date and available time slot instantly. No waiting.' },
               { step: '03', title: 'Play & Enjoy', desc: 'Show up and play. Your booking confirmation is your access pass.' },
             ].map(({ step, title, desc }, i) => (
@@ -268,7 +304,7 @@ export default function HomePage() {
                 READY TO PLAY?
               </h2>
               <p className="text-primary-100 text-lg max-w-xl mx-auto mb-8">
-                Join thousands of players booking their favourite courts on Sportiva.lk
+                Create your account and book your favourite court on Sportiva.lk
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link to="/register" className="bg-white text-primary-700 font-bold px-8 py-4 rounded-xl hover:bg-primary-50 transition-all shadow-xl hover:shadow-white/20 active:scale-95">
