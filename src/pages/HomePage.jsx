@@ -95,7 +95,7 @@ export default function HomePage() {
             <div className="inline-flex items-center gap-2 glass-green rounded-full px-4 py-2 mb-8 animate-fade-in">
               <Zap size={13} className="text-primary-400" />
               <span className="text-primary-400 text-xs font-semibold tracking-wide">
-                Sri Lanka's #1 Indoor Sports Booking Platform
+                Indoor Sports Booking Platform
               </span>
             </div>
 

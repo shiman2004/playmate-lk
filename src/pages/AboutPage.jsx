@@ -1,7 +1,32 @@
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Target, Heart, Zap, Users, Shield, Star } from 'lucide-react'
+import { Target, Heart, Zap, Users, Shield, Star, Building2, MapPin, Trophy } from 'lucide-react'
+import { useVenues } from '../hooks/useVenues'
 
 export default function AboutPage() {
+  const { venues, loading } = useVenues()
+
+  const stats = useMemo(() => {
+    const cities = new Set(venues.map(venue => venue.city).filter(Boolean)).size
+    const sports = new Set(
+      venues.flatMap(venue => {
+        if (Array.isArray(venue.sports)) return venue.sports
+        if (Array.isArray(venue.venue_sports)) {
+          return venue.venue_sports.map(item => item.sports?.name).filter(Boolean)
+        }
+        return []
+      })
+    ).size
+    const featured = venues.filter(venue => venue.is_featured).length
+
+    return [
+      { value: loading ? '...' : venues.length, label: 'Venues Listed', icon: Building2 },
+      { value: loading ? '...' : cities, label: 'Cities Covered', icon: MapPin },
+      { value: loading ? '...' : sports, label: 'Sports Available', icon: Trophy },
+      { value: loading ? '...' : featured, label: 'Featured Venues', icon: Star },
+    ]
+  }, [loading, venues])
+
   return (
     <div className="bg-dark-950 min-h-screen pt-16">
       {/* Hero */}
@@ -53,14 +78,11 @@ export default function AboutPage() {
             THE <span className="text-gradient">IMPACT</span>
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-            {[
-              { value: '54+', label: 'Venues Listed', icon: '🏟️' },
-              { value: '12', label: 'Cities Covered', icon: '🗺️' },
-              { value: '8,400+', label: 'Active Players', icon: '👥' },
-              { value: '3,200+', label: 'Bookings Made', icon: '📅' },
-            ].map(({ value, label, icon }) => (
+            {stats.map(({ value, label, icon: Icon }) => (
               <div key={label} className="card text-center group hover:border-primary-500/20 transition-all">
-                <div className="text-4xl mb-3">{icon}</div>
+                <div className="w-12 h-12 bg-primary-500/10 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:bg-primary-500/20 transition-all">
+                  <Icon size={22} className="text-primary-400" />
+                </div>
                 <div className="font-display text-4xl text-primary-400 mb-1">{value}</div>
                 <div className="text-slate-500 text-sm">{label}</div>
               </div>
@@ -107,7 +129,7 @@ export default function AboutPage() {
             JOIN THE <span className="text-gradient">GAME</span>
           </h2>
           <p className="text-slate-500 text-sm mb-8">
-            Be part of Sri Lanka's fastest growing sports community on Sportiva.lk
+            Discover and book indoor sports venues on Sportiva.lk
           </p>
           <div className="flex gap-3 justify-center flex-wrap">
             <Link to="/register" className="btn-primary">Create Free Account</Link>

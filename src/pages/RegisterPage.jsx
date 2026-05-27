@@ -166,7 +166,7 @@ export default function RegisterPage() {
             />
           </Link>
           <h1 className="font-heading font-bold text-3xl text-white">Create Account</h1>
-          <p className="text-slate-500 text-sm mt-1">Join thousands of players across Sri Lanka</p>
+          <p className="text-slate-500 text-sm mt-1">Create your account to book venues across Sri Lanka</p>
         </div>
 
         <div className="card border border-white/5">

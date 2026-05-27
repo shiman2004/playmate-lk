@@ -19,7 +19,7 @@ export default function Footer() {
               />
             </Link>
             <p className="text-slate-500 text-sm leading-relaxed mb-5">
-              Sri Lanka's #1 indoor sports venue booking platform. Find and book your favourite
+              Indoor sports venue booking platform. Find and book your favourite
               court in seconds.
             </p>
             <div className="flex gap-3">

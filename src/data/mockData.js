@@ -170,39 +170,9 @@ export const mockVenues = [
 ]
 
 export const mockSports = [
-  { id: '1', name: 'Futsal', icon: '⚽', color: 'green', venue_count: 18 },
-  { id: '2', name: 'Badminton', icon: '🏸', color: 'blue', venue_count: 24 },
-  { id: '3', name: 'Cricket', icon: '🏏', color: 'orange', venue_count: 12 },
-]
-
-export const mockTestimonials = [
-  {
-    id: '1',
-    name: 'Dilshan Perera',
-    role: 'Futsal Team Captain',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Dilshan',
-    rating: 5,
-    text: 'Sportiva.lk has completely changed how our team organizes matches. Booking is instant, no more back-and-forth calls. The Arena Pro courts are absolutely top-notch!',
-    venue: 'Arena Pro Futsal Complex',
-  },
-  {
-    id: '2',
-    name: 'Kavya Jayawardena',
-    role: 'Badminton Enthusiast',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Kavya',
-    rating: 5,
-    text: 'As someone who plays badminton 4 times a week, this app is a lifesaver. The slot availability is accurate and cancellation is hassle-free. Highly recommend!',
-    venue: 'Smash Badminton Academy',
-  },
-  {
-    id: '3',
-    name: 'Roshan Fernando',
-    role: 'Cricket Coach',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Roshan',
-    rating: 5,
-    text: 'I book the Cricket Hub nets for my students every week. The booking management dashboard is brilliant and my students love being able to book their own net sessions.',
-    venue: 'Cricket Hub Indoor Nets',
-  },
+  { id: '1', name: 'Futsal', icon: '⚽', color: 'green' },
+  { id: '2', name: 'Badminton', icon: '🏸', color: 'blue' },
+  { id: '3', name: 'Cricket', icon: '🏏', color: 'orange' },
 ]
 
 export const mockTimeSlots = (venueId, date) => {
@@ -310,9 +280,3 @@ export const mockReviews = [
   },
 ]
 
-export const mockStats = {
-  total_venues: 54,
-  total_bookings: 3200,
-  cities: 12,
-  active_users: 8400,
-}
