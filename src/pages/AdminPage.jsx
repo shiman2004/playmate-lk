@@ -6,6 +6,7 @@ import {
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
+import { getBookingStatus, getBookingStatusLabel } from '../lib/bookingStatus'
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -16,6 +17,7 @@ const TABS = [
 
 const STATUS_COLORS = {
   confirmed: 'badge-green',
+  ongoing: 'badge-yellow',
   completed: 'badge-blue',
   cancelled: 'badge-red',
   pending: 'badge-yellow',
@@ -40,12 +42,18 @@ export default function AdminPage() {
   const [loadingBookings, setLoadingBookings] = useState(true)
   const [assignModal, setAssignModal] = useState(null)
   const [assigning, setAssigning] = useState(false)
+  const [now, setNow] = useState(new Date())
   const navigate = useNavigate()
 
   useEffect(() => {
     fetchVenues()
     fetchUsers()
     fetchBookings()
+  }, [])
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60000)
+    return () => clearInterval(timer)
   }, [])
 
   const fetchVenues = async () => {
@@ -195,8 +203,13 @@ export default function AdminPage() {
   )
 
   const totalRevenue = bookings
-    .filter(b => b.status !== 'cancelled')
+    .filter(b => getBookingStatus(b, now) !== 'cancelled')
     .reduce((sum, b) => sum + (b.total_amount || 0), 0)
+
+  const bookingsWithStatus = bookings.map(booking => ({
+    ...booking,
+    displayStatus: getBookingStatus(booking, now),
+  }))
 
   return (
     <div className="bg-dark-950 min-h-screen pt-16">
@@ -288,14 +301,18 @@ export default function AdminPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
-                        {bookings.slice(0, 5).map(b => (
+                        {bookingsWithStatus.slice(0, 5).map(b => (
                           <tr key={b.id} className="hover:bg-white/2 transition-colors">
                             <td className="py-3 pr-4 text-slate-600 font-mono text-xs">#{b.id?.slice(0, 8)}</td>
                             <td className="py-3 pr-4 text-white font-medium">{b.customer_name || 'Customer'}</td>
                             <td className="py-3 pr-4 text-slate-400 truncate max-w-[120px]">{b.venue_name_detail || b.venue_name}</td>
                             <td className="py-3 pr-4 text-slate-400">{b.date}</td>
                             <td className="py-3 pr-4 text-primary-400 font-semibold">Rs {b.total_amount?.toLocaleString()}</td>
-                            <td className="py-3"><span className={STATUS_COLORS[b.status]}>{b.status}</span></td>
+                            <td className="py-3">
+                              <span className={STATUS_COLORS[b.displayStatus]}>
+                                {getBookingStatusLabel(b.displayStatus)}
+                              </span>
+                            </td>
                           </tr>
                         ))}
                         {bookings.length === 0 && (
@@ -435,7 +452,7 @@ export default function AdminPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
-                        {bookings.map(b => (
+                        {bookingsWithStatus.map(b => (
                           <tr key={b.id} className="hover:bg-white/2 transition-colors group">
                             <td className="px-5 py-4 text-slate-500 font-mono text-xs">#{b.id?.slice(0, 8)}</td>
                             <td className="px-5 py-4">
@@ -451,10 +468,12 @@ export default function AdminPage() {
                             </td>
                             <td className="px-5 py-4 text-primary-400 font-semibold">Rs {b.total_amount?.toLocaleString()}</td>
                             <td className="px-5 py-4">
-                              <span className={STATUS_COLORS[b.status]}>{b.status}</span>
+                              <span className={STATUS_COLORS[b.displayStatus]}>
+                                {getBookingStatusLabel(b.displayStatus)}
+                              </span>
                             </td>
                             <td className="px-5 py-4">
-                              {b.status === 'confirmed' && (
+                              {b.displayStatus === 'confirmed' && (
                                 <button
                                   onClick={() => handleCancelBooking(b.id)}
                                   className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 text-xs transition-all opacity-0 group-hover:opacity-100"

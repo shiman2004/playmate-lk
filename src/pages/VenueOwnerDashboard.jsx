@@ -9,6 +9,7 @@ import { supabase } from '../lib/supabase'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../components/common/LoadingSpinner'
+import { getBookingStatus, getBookingStatusLabel } from '../lib/bookingStatus'
 
 export default function VenueOwnerDashboard() {
   const { ownedVenueId } = useAuth()
@@ -18,10 +19,16 @@ export default function VenueOwnerDashboard() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'))
+  const [now, setNow] = useState(new Date())
 
   useEffect(() => {
     if (ownedVenueId) fetchAll()
   }, [ownedVenueId])
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60000)
+    return () => clearInterval(timer)
+  }, [])
 
   const fetchAll = async () => {
     setLoading(true)
@@ -129,12 +136,17 @@ export default function VenueOwnerDashboard() {
     </div>
   )
 
-  const totalRevenue = bookings
-    .filter(b => b.status !== 'cancelled')
+  const bookingsWithStatus = bookings.map(booking => ({
+    ...booking,
+    displayStatus: getBookingStatus(booking, now),
+  }))
+
+  const totalRevenue = bookingsWithStatus
+    .filter(b => b.displayStatus !== 'cancelled')
     .reduce((sum, b) => sum + (b.total_amount || 0), 0)
 
-  const confirmedBookings = bookings.filter(b => b.status === 'confirmed')
-  const todayBookings = bookings.filter(b => b.date === format(new Date(), 'yyyy-MM-dd'))
+  const confirmedBookings = bookingsWithStatus.filter(b => b.displayStatus === 'confirmed')
+  const todayBookings = bookingsWithStatus.filter(b => b.date === format(new Date(), 'yyyy-MM-dd'))
 
   const TABS = [
     { id: 'overview', label: 'Overview', icon: Building2 },
@@ -144,6 +156,7 @@ export default function VenueOwnerDashboard() {
 
   const STATUS_COLORS = {
     confirmed: 'badge-green',
+    ongoing: 'badge-yellow',
     completed: 'badge-blue',
     cancelled: 'badge-red',
     pending: 'badge-yellow',
@@ -258,7 +271,7 @@ export default function VenueOwnerDashboard() {
                 </button>
               </div>
 
-              {bookings.slice(0, 5).map(b => (
+              {bookingsWithStatus.slice(0, 5).map(b => (
                 <div key={b.id} className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
                   <div>
                     <p className="text-white text-sm font-semibold">
@@ -276,7 +289,7 @@ export default function VenueOwnerDashboard() {
                     <p className="text-primary-400 font-semibold text-sm">
                       Rs {b.total_amount?.toLocaleString()}
                     </p>
-                    <span className={STATUS_COLORS[b.status]}>{b.status}</span>
+                    <span className={STATUS_COLORS[b.displayStatus]}>{getBookingStatusLabel(b.displayStatus)}</span>
                   </div>
                 </div>
               ))}
@@ -308,8 +321,8 @@ export default function VenueOwnerDashboard() {
                   </thead>
 
                   <tbody className="divide-y divide-white/5">
-                    {bookings.map(b => {
-                      const canCancel = b.status === 'confirmed'
+                    {bookingsWithStatus.map(b => {
+                      const canCancel = b.displayStatus === 'confirmed'
 
                       return (
                         <tr key={b.id} className="hover:bg-white/2 transition-colors group">
@@ -344,8 +357,8 @@ export default function VenueOwnerDashboard() {
                           </td>
 
                           <td className="px-5 py-4">
-                            <span className={STATUS_COLORS[b.status]}>
-                              {b.status}
+                            <span className={STATUS_COLORS[b.displayStatus]}>
+                              {getBookingStatusLabel(b.displayStatus)}
                             </span>
                           </td>
 
@@ -359,11 +372,15 @@ export default function VenueOwnerDashboard() {
                               </button>
                             )}
 
-                            {b.status === 'cancelled' && (
+                            {b.displayStatus === 'cancelled' && (
                               <span className="text-slate-600 text-xs">Cancelled</span>
                             )}
 
-                            {b.status === 'completed' && (
+                            {b.displayStatus === 'ongoing' && (
+                              <span className="text-yellow-400 text-xs">In progress</span>
+                            )}
+
+                            {b.displayStatus === 'completed' && (
                               <span className="text-slate-600 text-xs">Completed</span>
                             )}
                           </td>

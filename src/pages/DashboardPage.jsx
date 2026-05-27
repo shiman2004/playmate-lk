@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   LayoutDashboard, Calendar, Clock, CheckCircle, XCircle,
@@ -8,23 +8,29 @@ import { useAuth } from '../context/AuthContext'
 import { useBookings } from '../hooks/useBookings'
 import BookingCard from '../components/booking/BookingCard'
 import LoadingSpinner from '../components/common/LoadingSpinner'
-import { format, isAfter, parseISO } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import toast from 'react-hot-toast'
+import { getBookingStatus } from '../lib/bookingStatus'
 
 export default function DashboardPage() {
   const { user, profile } = useAuth()
   const { bookings, loading, cancelBooking } = useBookings()
   const [activeTab, setActiveTab] = useState('upcoming')
+  const [now, setNow] = useState(new Date())
 
-  const now = new Date()
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60000)
+    return () => clearInterval(timer)
+  }, [])
 
-  const upcoming = bookings.filter(b =>
-    b.status === 'confirmed' && isAfter(parseISO(`${b.date}T${b.start_time}`), now)
-  )
-  const past = bookings.filter(b =>
-    b.status === 'completed' || (b.status === 'confirmed' && !isAfter(parseISO(`${b.date}T${b.start_time}`), now))
-  )
-  const cancelled = bookings.filter(b => b.status === 'cancelled')
+  const bookingsWithStatus = bookings.map(booking => ({
+    ...booking,
+    displayStatus: getBookingStatus(booking, now),
+  }))
+
+  const upcoming = bookingsWithStatus.filter(b => b.displayStatus === 'confirmed' || b.displayStatus === 'ongoing')
+  const past = bookingsWithStatus.filter(b => b.displayStatus === 'completed')
+  const cancelled = bookingsWithStatus.filter(b => b.displayStatus === 'cancelled')
 
   const handleCancel = async (id) => {
     if (!confirm('Are you sure you want to cancel this booking?')) return
@@ -36,8 +42,8 @@ export default function DashboardPage() {
     }
   }
 
-  const totalSpent = bookings
-    .filter(b => b.status !== 'cancelled')
+  const totalSpent = bookingsWithStatus
+    .filter(b => b.displayStatus !== 'cancelled')
     .reduce((sum, b) => sum + (b.total_amount || 0), 0)
 
   const TABS = [

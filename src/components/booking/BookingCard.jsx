@@ -1,16 +1,19 @@
 import { format } from 'date-fns'
 import { Calendar, Clock, MapPin, X } from 'lucide-react'
+import { getBookingStatus, getBookingStatusLabel } from '../../lib/bookingStatus'
 
 const STATUS_CONFIG = {
-  confirmed: { label: 'Confirmed', class: 'badge-green' },
-  completed: { label: 'Completed', class: 'badge-blue' },
-  cancelled: { label: 'Cancelled', class: 'badge-red' },
-  pending: { label: 'Pending', class: 'badge-yellow' },
+  confirmed: { class: 'badge-green' },
+  ongoing: { class: 'badge-yellow' },
+  completed: { class: 'badge-blue' },
+  cancelled: { class: 'badge-red' },
+  pending: { class: 'badge-yellow' },
 }
 
 export default function BookingCard({ booking, onCancel }) {
-  const config = STATUS_CONFIG[booking.status] || STATUS_CONFIG.pending
-  const isUpcoming = booking.status === 'confirmed' && new Date(`${booking.date}T${booking.start_time}`) > new Date()
+  const status = getBookingStatus(booking)
+  const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending
+  const isUpcoming = status === 'confirmed'
 
   return (
     <div className="card flex flex-col sm:flex-row gap-4 group hover:border-white/10 transition-all">
@@ -31,7 +34,7 @@ export default function BookingCard({ booking, onCancel }) {
           <h3 className="text-white font-heading font-semibold text-base leading-tight truncate">
             {booking.venue_name}
           </h3>
-          <span className={config.class}>{config.label}</span>
+          <span className={config.class}>{getBookingStatusLabel(status)}</span>
         </div>
 
         <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mb-3">
