@@ -9,7 +9,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const { user, profile, isAdmin, isSuperAdmin, isVenueOwner, signOut } = useAuth()
+  const { user, profile, isSuperAdmin, isVenueOwner, signOut } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
 

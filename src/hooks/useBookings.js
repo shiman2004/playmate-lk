@@ -40,7 +40,6 @@ export function useBookings() {
 
       if (err) throw err
 
-      // Flatten venue data for easy use in components
       const formatted = (data || []).map(b => ({
         ...b,
         venue_name: b.venues?.name || 'Unknown Venue',
@@ -72,7 +71,20 @@ export function useBookings() {
 
     const { venue_name, venue_image, slot_ids, ...cleanData } = bookingData
 
-    // ✅ Step 1 — Create ONE single booking record
+    if (slot_ids && slot_ids.length > 0) {
+      const { data: reservedSlots, error: slotError } = await supabase
+        .from('time_slots')
+        .update({ is_available: false })
+        .in('id', slot_ids)
+        .eq('is_available', true)
+        .select('id')
+
+      if (slotError) throw slotError
+      if ((reservedSlots || []).length !== slot_ids.length) {
+        throw new Error('Some selected slots are no longer available. Please choose another time.')
+      }
+    }
+
     const { data, error } = await supabase
       .from('bookings')
       .insert({
@@ -83,36 +95,29 @@ export function useBookings() {
         end_time: cleanData.end_time,
         sport: cleanData.sport,
         total_amount: cleanData.total_amount,
-        slot_id: slot_ids?.[0] || null, // store first slot id as reference
+        slot_id: slot_ids?.[0] || null,
         status: 'confirmed',
       })
       .select()
       .single()
 
-    if (error) throw error
-
-    // ✅ Step 2 — Mark ALL selected slots as unavailable
-    if (slot_ids && slot_ids.length > 0) {
-      const { error: slotError } = await supabase
-        .from('time_slots')
-        .update({ is_available: false })
-        .in('id', slot_ids) // ← marks ALL slots at once
-
-      if (slotError) {
-        console.error('Failed to mark slots unavailable:', slotError.message)
+    if (error) {
+      if (slot_ids && slot_ids.length > 0) {
+        await supabase
+          .from('time_slots')
+          .update({ is_available: true })
+          .in('id', slot_ids)
       }
+      throw error
     }
 
-    // ✅ Step 3 — Send confirmation email
     try {
-      // Get venue owner email
       const { data: venueData } = await supabase
         .from('venues')
         .select('email, profiles(email)')
         .eq('id', cleanData.venue_id)
         .single()
 
-      // Get user profile for phone
       const { data: userProfile } = await supabase
         .from('profiles')
         .select('full_name, phone')
@@ -140,10 +145,8 @@ export function useBookings() {
       })
     } catch (emailErr) {
       console.error('Email send failed:', emailErr)
-      // Don't throw — booking is still confirmed even if email fails
     }
 
-    // ✅ Step 4 — Add to local state
     setBookings(prev => [
       {
         ...data,
@@ -177,7 +180,6 @@ export function useBookings() {
 
     if (error) throw error
 
-    // Free up ALL slots in the time range for this booking
     if (booking) {
       await supabase
         .from('time_slots')
@@ -185,10 +187,9 @@ export function useBookings() {
         .eq('venue_id', booking.venue_id)
         .eq('date', booking.date)
         .gte('start_time', booking.start_time)
-        .lt('start_time', booking.end_time) // free all slots between start and end
+        .lt('start_time', booking.end_time)
     }
 
-    // ✅ Send cancellation email
     try {
       const cancelledBooking = bookings.find(b => b.id === bookingId)
 

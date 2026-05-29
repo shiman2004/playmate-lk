@@ -15,6 +15,18 @@ function getVenueSports(venue) {
   return []
 }
 
+function normalizeVenue(venue) {
+  if (!venue) return venue
+  return {
+    ...venue,
+    sports: getVenueSports(venue),
+  }
+}
+
+function isUuid(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+}
+
 function applyVenueFilters(venues, filters = {}) {
   const filtered = venues.filter(venue => {
     const sports = getVenueSports(venue)
@@ -93,10 +105,7 @@ export function useVenues(filters = {}) {
       const { data, error: err } = await query.order('rating', { ascending: false })
       if (err) throw err
 
-      const formatted = (data || []).map(venue => ({
-        ...venue,
-        sports: getVenueSports(venue),
-      }))
+      const formatted = (data || []).map(normalizeVenue)
 
       setVenues(applyVenueFilters(formatted, filters))
     } catch (err) {
@@ -131,13 +140,15 @@ export function useVenue(id) {
         return
       }
 
-      const { data, error: err } = await supabase
+      let query = supabase
         .from('venues')
         .select('*, venue_sports(sports(*))')
-        .or(`id.eq.${id},slug.eq.${id}`)
-        .single()
+
+      query = isUuid(id) ? query.eq('id', id) : query.eq('slug', id)
+
+      const { data, error: err } = await query.single()
       if (err) throw err
-      setVenue(data)
+      setVenue(normalizeVenue(data))
     } catch (err) {
       setError(err.message)
     } finally {

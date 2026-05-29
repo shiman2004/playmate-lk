@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { X, Calendar, Clock, CheckCircle, AlertCircle, Loader, Sun, Moon, Plus, Minus } from 'lucide-react'
+import { X, Calendar, Clock, CheckCircle, AlertCircle, Loader, Sun, Moon } from 'lucide-react'
 import { format, addDays, isBefore } from 'date-fns'
 import { useTimeSlots } from '../../hooks/useVenues'
 import { useBookings } from '../../hooks/useBookings'
@@ -21,12 +21,6 @@ function isSlotPast(date, startTime) {
 function timeToMinutes(timeStr) {
   const [h, m] = timeStr.split(':').map(Number)
   return h * 60 + m
-}
-
-function minutesToTime(minutes) {
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
 }
 
 function formatDuration(minutes) {

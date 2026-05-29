@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  LayoutDashboard, Calendar, Clock, CheckCircle, XCircle,
+  Calendar, Clock, CheckCircle, XCircle,
   TrendingUp, MapPin, ChevronRight, Plus
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'

@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   phone       TEXT,
   bio         TEXT,
   city        TEXT,
-  role        TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin', 'venue_owner')),
+  role        TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin', 'super_admin', 'venue_owner')),
+  owned_venue_id UUID,
   avatar_url  TEXT,
   created_at  TIMESTAMPTZ DEFAULT NOW(),
   updated_at  TIMESTAMPTZ DEFAULT NOW()
@@ -66,6 +67,10 @@ CREATE TABLE IF NOT EXISTS public.venues (
   rating          DECIMAL(2,1) DEFAULT 0,
   review_count    INTEGER DEFAULT 0,
   price_per_hour  INTEGER NOT NULL,
+  sports          TEXT[] DEFAULT '{}',
+  half_hour_price INTEGER DEFAULT 0,
+  night_surcharge INTEGER DEFAULT 0,
+  price_cutoff_time TIME DEFAULT '17:00',
   is_featured     BOOLEAN DEFAULT FALSE,
   is_active       BOOLEAN DEFAULT TRUE,
   amenities       TEXT[] DEFAULT '{}',
@@ -166,12 +171,15 @@ CREATE TRIGGER on_review_created
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public profiles are viewable by everyone" ON public.profiles FOR SELECT USING (TRUE);
 CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Super admins can manage profiles" ON public.profiles FOR ALL
+  USING ((SELECT role FROM public.profiles WHERE id = auth.uid()) = 'super_admin')
+  WITH CHECK (TRUE);
 
 -- Venues
 ALTER TABLE public.venues ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Venues are viewable by everyone" ON public.venues FOR SELECT USING (TRUE);
 CREATE POLICY "Admins can manage venues" ON public.venues FOR ALL
-  USING ((SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin');
+  USING ((SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('admin', 'super_admin'));
 
 -- Sports
 ALTER TABLE public.sports ENABLE ROW LEVEL SECURITY;
@@ -185,7 +193,7 @@ CREATE POLICY "Venue sports are viewable by everyone" ON public.venue_sports FOR
 ALTER TABLE public.time_slots ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Time slots are viewable by everyone" ON public.time_slots FOR SELECT USING (TRUE);
 CREATE POLICY "Admins can manage time slots" ON public.time_slots FOR ALL
-  USING ((SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('admin', 'venue_owner'));
+  USING ((SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('admin', 'super_admin', 'venue_owner'));
 
 -- Bookings
 ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
@@ -193,7 +201,23 @@ CREATE POLICY "Users can view own bookings" ON public.bookings FOR SELECT USING 
 CREATE POLICY "Users can create bookings" ON public.bookings FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update own bookings" ON public.bookings FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "Admins can view all bookings" ON public.bookings FOR SELECT
-  USING ((SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin');
+  USING ((SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('admin', 'super_admin'));
+CREATE POLICY "Admins can update all bookings" ON public.bookings FOR UPDATE
+  USING ((SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('admin', 'super_admin'));
+
+CREATE OR REPLACE VIEW public.bookings_with_details
+WITH (security_invoker = true) AS
+SELECT
+  b.*,
+  v.name AS venue_name,
+  v.name AS venue_name_detail,
+  v.images AS venue_images,
+  v.address AS venue_address,
+  p.full_name AS customer_name,
+  p.phone AS customer_phone
+FROM public.bookings b
+LEFT JOIN public.venues v ON v.id = b.venue_id
+LEFT JOIN public.profiles p ON p.id = b.user_id;
 
 -- Reviews
 ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;

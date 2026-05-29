@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { MapPin, Clock, Star, Phone, Mail, Wifi, Car, Wind, ChevronLeft, Heart, Share2, CheckCircle } from 'lucide-react'
+import { MapPin, Clock, Phone, Mail, Heart, Share2, CheckCircle } from 'lucide-react'
 import { useVenue } from '../hooks/useVenues'
 import { mockReviews } from '../data/mockData'
 import LoadingSpinner from '../components/common/LoadingSpinner'

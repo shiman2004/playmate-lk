@@ -1,5 +1,5 @@
 import { format } from 'date-fns'
-import { Calendar, Clock, MapPin, X } from 'lucide-react'
+import { Calendar, Clock, X } from 'lucide-react'
 import { getBookingStatus, getBookingStatusLabel } from '../../lib/bookingStatus'
 
 const STATUS_CONFIG = {

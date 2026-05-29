@@ -180,13 +180,12 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-4xl mx-auto">
-            {sportCategories.map((sport, i) => (
+            {sportCategories.map((sport) => (
               <Link
                 key={sport.id}
                 to={`/venues?sport=${sport.name}`}
                 className={`group relative p-5 rounded-2xl border bg-gradient-to-br ${SPORT_GRADIENTS[sport.name] || 'from-slate-500/20 to-slate-600/10 border-slate-500/20'} 
                   hover:scale-105 transition-all duration-300 text-center overflow-hidden`}
-                style={{ animationDelay: `${i * 0.05}s` }}
               >
                 <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">
                   {sport.icon}
@@ -264,7 +263,7 @@ export default function HomePage() {
               { step: '01', title: 'Find Your Venue', desc: 'Browse and filter available indoor sports venues across Sri Lanka.' },
               { step: '02', title: 'Pick a Slot', desc: 'Choose your preferred date and available time slot instantly. No waiting.' },
               { step: '03', title: 'Play & Enjoy', desc: 'Show up and play. Your booking confirmation is your access pass.' },
-            ].map(({ step, title, desc }, i) => (
+            ].map(({ step, title, desc }) => (
               <div key={step} className="relative z-10 card text-center group hover:-translate-y-1 transition-all">
                 <div className="w-16 h-16 bg-dark-800 border-2 border-primary-500/30 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:border-primary-500 transition-all">
                   <span className="font-display text-2xl text-primary-400">{step}</span>

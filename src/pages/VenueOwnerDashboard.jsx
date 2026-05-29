@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Building2, Calendar, TrendingUp, Clock, CheckCircle,
+  Building2, Calendar, TrendingUp, Clock,
   XCircle, Users, Edit
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'

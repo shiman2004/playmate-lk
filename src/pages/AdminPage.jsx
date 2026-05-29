@@ -136,11 +136,14 @@ export default function AdminPage() {
         .eq('id', bookingId)
       if (error) throw error
 
-      if (booking?.slot_id) {
+      if (booking) {
         await supabase
           .from('time_slots')
           .update({ is_available: true })
-          .eq('id', booking.slot_id)
+          .eq('venue_id', booking.venue_id)
+          .eq('date', booking.date)
+          .gte('start_time', booking.start_time)
+          .lt('start_time', booking.end_time)
       }
 
       toast.success('Booking cancelled')
