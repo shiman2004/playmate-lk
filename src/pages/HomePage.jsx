@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Search, MapPin, Star, Building2, Trophy, Zap, ChevronRight } from 'lucide-react'
+import { Search, MapPin, Star, Building2, Trophy, ChevronRight } from 'lucide-react'
 import { useVenues } from '../hooks/useVenues'
 import VenueCard from '../components/venues/VenueCard'
 import { mockSports } from '../data/mockData'
@@ -91,14 +91,6 @@ export default function HomePage() {
 
         <div className="container-custom relative z-20 pt-28 pb-20">
           <div className="max-w-4xl mx-auto text-center">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 glass-green rounded-full px-4 py-2 mb-8 animate-fade-in">
-              <Zap size={13} className="text-primary-400" />
-              <span className="text-primary-400 text-xs font-semibold tracking-wide">
-                Indoor Sports Booking Platform
-              </span>
-            </div>
-
             {/* Headline */}
             <h1 className="font-display text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-none tracking-tight mb-6 animate-slide-up">
               <span className="text-white">BOOK YOUR</span>
