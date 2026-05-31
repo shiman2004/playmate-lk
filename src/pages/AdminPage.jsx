@@ -30,6 +30,13 @@ const ROLE_COLORS = {
   user: 'badge-blue',
 }
 
+const ROLE_ORDER = {
+  super_admin: 0,
+  admin: 1,
+  venue_owner: 2,
+  user: 3,
+}
+
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('overview')
   const [venueSearch, setVenueSearch] = useState('')
@@ -199,11 +206,17 @@ export default function AdminPage() {
     v.city.toLowerCase().includes(venueSearch.toLowerCase())
   )
 
-  const filteredUsers = users.filter(u =>
-    (u.full_name || '').toLowerCase().includes(userSearch.toLowerCase()) ||
-    (u.role || '').toLowerCase().includes(userSearch.toLowerCase()) ||
-    (getOwnedVenueName(u.owned_venue_id) || '').toLowerCase().includes(userSearch.toLowerCase())
-  )
+  const filteredUsers = users
+    .filter(u =>
+      (u.full_name || '').toLowerCase().includes(userSearch.toLowerCase()) ||
+      (u.role || '').toLowerCase().includes(userSearch.toLowerCase()) ||
+      (getOwnedVenueName(u.owned_venue_id) || '').toLowerCase().includes(userSearch.toLowerCase())
+    )
+    .sort((a, b) => {
+      const roleDiff = (ROLE_ORDER[a.role] ?? 99) - (ROLE_ORDER[b.role] ?? 99)
+      if (roleDiff !== 0) return roleDiff
+      return (a.full_name || '').localeCompare(b.full_name || '')
+    })
 
   const totalRevenue = bookings
     .filter(b => getBookingStatus(b, now) !== 'cancelled')
