@@ -67,7 +67,7 @@ export default function HomePage() {
   return (
     <div className="bg-dark-950">
       {/* HERO SECTION */}
-      <section className="relative min-h-screen flex items-center overflow-hidden">
+      <section className="relative min-h-[calc(100svh-4rem)] md:min-h-screen flex items-start md:items-center overflow-hidden">
         {/* Background */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-dark-950 via-dark-950/95 to-dark-950/90 z-10" />
@@ -89,23 +89,23 @@ export default function HomePage() {
           />
         </div>
 
-        <div className="container-custom relative z-20 pt-28 pb-20">
-          <div className="max-w-4xl mx-auto text-center">
+        <div className="container-custom relative z-20 w-full pt-20 pb-10 sm:pt-28 sm:pb-20">
+          <div className="w-full max-w-none sm:max-w-4xl mx-auto text-center">
             {/* Headline */}
-            <h1 className="font-display text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-none tracking-tight mb-6 animate-slide-up">
+            <h1 className="font-display text-[4.6rem] sm:text-7xl md:text-8xl lg:text-9xl leading-[0.9] tracking-tight mb-6 animate-slide-up">
               <span className="text-white">BOOK YOUR</span>
               <br />
               <span className="text-gradient">COURT</span>
               <span className="text-white"> TODAY</span>
             </h1>
 
-            <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in" style={{ animationDelay: '0.1s' }}>
+            <p className="text-slate-400 text-xl md:text-xl max-w-none sm:max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed animate-fade-in" style={{ animationDelay: '0.1s' }}>
                No calls. No hassle. Just play.
             </p>
 
             {/* Search Bar */}
             <form onSubmit={handleSearch}
-              className="glass border border-white/10 rounded-2xl p-2 flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto mb-8 animate-slide-up"
+              className="glass border border-white/10 rounded-2xl p-2 flex flex-col sm:flex-row gap-2 w-full max-w-none sm:max-w-2xl mx-auto mb-8 animate-slide-up"
               style={{ animationDelay: '0.2s' }}>
               <div className="flex-1 flex items-center gap-2 px-3">
                 <Search size={18} className="text-slate-500 shrink-0" />
@@ -114,7 +114,7 @@ export default function HomePage() {
                   placeholder="Search venues, sports..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="bg-transparent text-white placeholder-slate-500 text-sm flex-1 focus:outline-none py-2"
+                  className="bg-transparent text-white placeholder-slate-500 text-base sm:text-sm flex-1 focus:outline-none py-3 sm:py-2"
                 />
               </div>
               <div className="hidden sm:block w-px bg-white/10 my-2" />
@@ -123,7 +123,7 @@ export default function HomePage() {
                 <select
                   value={searchCity}
                   onChange={e => setSearchCity(e.target.value)}
-                  className="bg-transparent text-slate-400 text-sm flex-1 focus:outline-none py-2 cursor-pointer"
+                  className="bg-transparent text-slate-400 text-base sm:text-sm flex-1 focus:outline-none py-3 sm:py-2 cursor-pointer"
                 >
                   <option value="" className="bg-dark-900">All Cities</option>
                   {['Colombo', 'Nugegoda', 'Kandy', 'Galle', 'Kelaniya', 'Negombo'].map(c => (
@@ -131,7 +131,7 @@ export default function HomePage() {
                   ))}
                 </select>
               </div>
-              <button type="submit" className="btn-primary px-8 py-3 text-sm whitespace-nowrap">
+              <button type="submit" className="btn-primary px-8 py-3.5 sm:py-3 text-base sm:text-sm whitespace-nowrap">
                 Search Venues
               </button>
             </form>
@@ -139,9 +139,9 @@ export default function HomePage() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto mt-20">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 w-full max-w-none md:max-w-3xl mx-auto mt-10 sm:mt-20">
             {homepageStats.map(({ icon: Icon, value, label }) => (
-              <div key={label} className="glass rounded-2xl p-5 text-center group hover:border-primary-500/20 transition-all">
+              <div key={label} className="glass rounded-2xl p-4 sm:p-5 text-center group hover:border-primary-500/20 transition-all">
                 <div className="w-10 h-10 rounded-xl bg-primary-500/10 flex items-center justify-center mx-auto mb-2 group-hover:bg-primary-500/20 transition-all">
                   <Icon size={18} className="text-primary-400" />
                 </div>
@@ -153,7 +153,7 @@ export default function HomePage() {
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-float z-20">
+        <div className="hidden md:block absolute bottom-8 left-1/2 -translate-x-1/2 animate-float z-20">
           <div className="w-6 h-10 rounded-full border-2 border-white/10 flex items-start justify-center p-1.5">
             <div className="w-1 h-2.5 bg-primary-500 rounded-full animate-bounce" />
           </div>
