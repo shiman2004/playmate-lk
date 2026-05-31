@@ -208,11 +208,11 @@ export default function HomePage() {
           </div>
 
           {featuredLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
               {Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="rounded-2xl overflow-hidden">
-                  <div className="skeleton h-48" />
-                  <div className="p-5 bg-dark-900 space-y-3">
+                  <div className="skeleton h-32 sm:h-48" />
+                  <div className="p-3 sm:p-5 bg-dark-900 space-y-3">
                     <div className="skeleton h-4 w-3/4 rounded" />
                     <div className="skeleton h-3 w-1/2 rounded" />
                     <div className="skeleton h-10 rounded-xl" />
@@ -221,7 +221,7 @@ export default function HomePage() {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
               {featuredVenues.slice(0, 3).map(venue => (
                 <VenueCard key={venue.id} venue={venue} />
               ))}
