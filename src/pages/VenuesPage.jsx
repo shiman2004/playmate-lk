@@ -219,11 +219,11 @@ export default function VenuesPage() {
             )}
 
             {loading ? (
-              <div className={`grid gap-5 ${viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
+              <div className={`grid gap-3 sm:gap-5 ${viewMode === 'grid' ? 'grid-cols-2 sm:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="rounded-2xl overflow-hidden">
-                    <div className="skeleton h-48" />
-                    <div className="p-5 bg-dark-900 space-y-3">
+                    <div className="skeleton h-32 sm:h-48" />
+                    <div className="p-3 sm:p-5 bg-dark-900 space-y-3">
                       <div className="skeleton h-4 w-3/4 rounded" />
                       <div className="skeleton h-3 w-1/2 rounded" />
                       <div className="skeleton h-10 rounded-xl" />
@@ -239,7 +239,7 @@ export default function VenuesPage() {
                 <button onClick={clearFilters} className="btn-primary text-sm">Clear Filters</button>
               </div>
             ) : (
-              <div className={`grid gap-5 ${viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
+              <div className={`grid gap-3 sm:gap-5 ${viewMode === 'grid' ? 'grid-cols-2 sm:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
                 {venues.map(venue => (
                   <VenueCard key={venue.id} venue={venue} />
                 ))}
