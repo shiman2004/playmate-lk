@@ -100,8 +100,7 @@ export default function HomePage() {
             </h1>
 
             <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in" style={{ animationDelay: '0.1s' }}>
-              Find and instantly book futsal grounds, badminton courts, and cricket nets
-              across Sri Lanka. No calls. No hassle. Just play.
+               No calls. No hassle. Just play.
             </p>
 
             {/* Search Bar */}
