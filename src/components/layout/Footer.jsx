@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { MapPin, Phone, Mail, Instagram, Facebook, Twitter, Youtube } from 'lucide-react'
+import { MapPin, Phone, Mail, Instagram, Facebook, Music2 } from 'lucide-react'
 
 export default function Footer() {
   return (
@@ -24,12 +24,11 @@ export default function Footer() {
             </p>
             <div className="flex gap-3">
               {[
-                { icon: Instagram, href: '#' },
-                { icon: Facebook, href: '#' },
-                { icon: Twitter, href: '#' },
-                { icon: Youtube, href: '#' },
-              ].map(({ icon: Icon, href }, i) => (
-                <a key={i} href={href}
+                { icon: Instagram, href: 'https://www.instagram.com/sportiva.lk', label: 'Instagram' },
+                { icon: Facebook, href: 'https://www.facebook.com/sportiva.lk', label: 'Facebook' },
+                { icon: Music2, href: 'https://www.tiktok.com/@sportiva.lk', label: 'TikTok' },
+              ].map(({ icon: Icon, href, label }) => (
+                <a key={label} href={href} aria-label={label}
                   className="w-9 h-9 rounded-lg bg-dark-800 border border-white/5 flex items-center justify-center text-slate-500 hover:text-primary-400 hover:border-primary-500/30 transition-all">
                   <Icon size={16} />
                 </a>
