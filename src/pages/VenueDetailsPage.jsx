@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { MapPin, Clock, Phone, Mail, Heart, Share2, CheckCircle } from 'lucide-react'
+import { MapPin, Clock, Phone, Mail, Heart, Share2, CheckCircle, ExternalLink } from 'lucide-react'
 import { useVenue } from '../hooks/useVenues'
 import { mockReviews } from '../data/mockData'
 import LoadingSpinner from '../components/common/LoadingSpinner'
@@ -35,6 +35,13 @@ export default function VenueDetailsPage() {
       <Link to="/venues" className="btn-primary text-sm">Back to Venues</Link>
     </div>
   )
+
+  const latitude = Number(venue.latitude ?? venue.lat)
+  const longitude = Number(venue.longitude ?? venue.lng)
+  const hasCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude)
+  const mapEmbedUrl = hasCoordinates
+    ? `https://maps.google.com/maps?q=${latitude},${longitude}&z=16&output=embed`
+    : null
 
   return (
     <div className="bg-dark-950 min-h-screen pt-16">
@@ -245,13 +252,37 @@ export default function VenueDetailsPage() {
               {/* Location */}
               <div className="card">
                 <h3 className="text-white font-heading font-semibold text-lg mb-3">Location</h3>
-                <div className="rounded-xl bg-dark-800 h-40 flex items-center justify-center border border-white/5 mb-3">
-                  <div className="text-center">
-                    <MapPin size={28} className="text-primary-500 mx-auto mb-2" />
-                    <p className="text-slate-500 text-xs">{venue.city}, {venue.district}</p>
-                  </div>
+                <div className="rounded-xl bg-dark-800 h-40 overflow-hidden border border-white/5 mb-3">
+                  {mapEmbedUrl ? (
+                    <iframe
+                      title={`${venue.name} map`}
+                      src={mapEmbedUrl}
+                      className="w-full h-full border-0"
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-center">
+                      <div>
+                        <MapPin size={28} className="text-primary-500 mx-auto mb-2" />
+                        <p className="text-slate-500 text-xs">{venue.city}, {venue.district}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <p className="text-slate-500 text-sm">{venue.address}</p>
+                <p className="text-slate-500 text-sm mb-3">{venue.address}</p>
+                {venue.google_maps_link && (
+                  <a
+                    href={venue.google_maps_link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn-outline w-full flex items-center justify-center gap-2 text-sm py-2.5"
+                  >
+                    <MapPin size={14} />
+                    Open in Google Maps
+                    <ExternalLink size={13} />
+                  </a>
+                )}
               </div>
             </div>
           </div>
