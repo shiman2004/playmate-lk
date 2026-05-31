@@ -239,28 +239,26 @@ export default function HomePage() {
       {/* HOW IT WORKS */}
       <section className="section bg-dark-900/50">
         <div className="container-custom">
-          <div className="text-center mb-14">
-            <p className="text-primary-400 text-sm font-semibold tracking-widest uppercase mb-3">Simple Process</p>
+          <div className="text-center mb-8 md:mb-14">
             <h2 className="font-display text-5xl md:text-6xl text-white">
               BOOK IN <span className="text-gradient">3 STEPS</span>
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 relative">
             {/* Connector line */}
             <div className="hidden md:block absolute top-12 left-1/3 right-1/3 h-0.5 bg-gradient-to-r from-primary-500/50 via-primary-400 to-primary-500/50 z-0" />
 
             {[
-              { step: '01', title: 'Find Your Venue', desc: 'Browse and filter available indoor sports venues across Sri Lanka.' },
-              { step: '02', title: 'Pick a Slot', desc: 'Choose your preferred date and available time slot instantly. No waiting.' },
-              { step: '03', title: 'Play & Enjoy', desc: 'Show up and play. Your booking confirmation is your access pass.' },
-            ].map(({ step, title, desc }) => (
-              <div key={step} className="relative z-10 card text-center group hover:-translate-y-1 transition-all">
-                <div className="w-16 h-16 bg-dark-800 border-2 border-primary-500/30 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:border-primary-500 transition-all">
-                  <span className="font-display text-2xl text-primary-400">{step}</span>
+              { step: '01', title: 'Find Your Venue' },
+              { step: '02', title: 'Pick a Slot' },
+              { step: '03', title: 'Pay & Enjoy' },
+            ].map(({ step, title }) => (
+              <div key={step} className="relative z-10 card text-center group hover:-translate-y-1 transition-all px-2 py-4 sm:p-5 md:p-6">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-dark-800 border-2 border-primary-500/30 rounded-xl md:rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-5 group-hover:border-primary-500 transition-all">
+                  <span className="font-display text-xl sm:text-2xl text-primary-400">{step}</span>
                 </div>
-                <h3 className="text-white font-heading font-semibold text-xl mb-2">{title}</h3>
-                <p className="text-slate-500 text-sm leading-relaxed">{desc}</p>
+                <h3 className="text-white font-heading font-semibold text-xs sm:text-base md:text-xl leading-tight">{title}</h3>
               </div>
             ))}
           </div>
