@@ -170,19 +170,19 @@ export default function HomePage() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 max-w-4xl mx-auto">
             {sportCategories.map((sport) => (
               <Link
                 key={sport.id}
                 to={`/venues?sport=${sport.name}`}
-                className={`group relative p-5 rounded-2xl border bg-gradient-to-br ${SPORT_GRADIENTS[sport.name] || 'from-slate-500/20 to-slate-600/10 border-slate-500/20'} 
+                className={`group relative p-3 sm:p-5 rounded-xl sm:rounded-2xl border bg-gradient-to-br ${SPORT_GRADIENTS[sport.name] || 'from-slate-500/20 to-slate-600/10 border-slate-500/20'} 
                   hover:scale-105 transition-all duration-300 text-center overflow-hidden`}
               >
-                <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">
+                <div className="text-3xl sm:text-4xl mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-300">
                   {sport.icon}
                 </div>
-                <h3 className="text-white font-heading font-semibold text-sm mb-1">{sport.name}</h3>
-                <p className="text-slate-500 text-xs">
+                <h3 className="text-white font-heading font-semibold text-xs sm:text-sm mb-1">{sport.name}</h3>
+                <p className="text-slate-500 text-[11px] sm:text-xs">
                   {venuesLoading ? 'Loading...' : `${sport.venue_count} venue${sport.venue_count !== 1 ? 's' : ''}`}
                 </p>
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
